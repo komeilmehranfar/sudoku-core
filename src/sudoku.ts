@@ -21,27 +21,20 @@ type Cell = {
 }
 type OutputBoard = Array<Cell>
 interface Options {
-  boardErrorFn: ({message}: {message: string}) => void
-  boardFinishedFn: ({difficultyInfo}: {difficultyInfo: unknown}) => void
-  boardUpdatedFn: ({
+  boardErrorFn?: ({message}: {message: string}) => void
+  boardFinishedFn?: ({difficultyInfo}: {difficultyInfo: unknown}) => void
+  boardUpdatedFn?: ({
     cause,
     cellsUpdated,
   }: {
     cause: unknown
     cellsUpdated: unknown
   }) => void
-  candidateShowToggleFn: (isShowing: boolean) => void
-  initBoardData: InputBoard
-  difficulty: Difficulty
+  candidateShowToggleFn?: (isShowing: boolean) => void
+  initBoardData?: InputBoard
+  difficulty?: Difficulty
 }
-const defaultOptions: Options = {
-  boardErrorFn: () => {},
-  boardUpdatedFn: () => {},
-  boardFinishedFn: () => {},
-  candidateShowToggleFn: () => {},
-  initBoardData: [],
-  difficulty: DIFFICULTY_MEDIUM,
-}
+const defaultOptions: Options = {}
 type StrategyFn = () => boolean | Array<number> | number
 interface Strategy {
   title: string
@@ -49,19 +42,17 @@ interface Strategy {
   fn: StrategyFn
 }
 export function SudokuInstance(options: Options = defaultOptions) {
-  console.log('started')
-
   const {
     boardErrorFn,
     boardUpdatedFn,
     boardFinishedFn,
     initBoardData,
     difficulty,
-  } = options
+  } = {...defaultOptions, ...options}
 
   let solveMode: typeof SOLVE_MODE_STEP | typeof SOLVE_MODE_ALL =
     SOLVE_MODE_STEP
-  let board: OutputBoard
+  let board: OutputBoard = []
 
   let boardFinished = false
   let boardError = false
@@ -259,9 +250,9 @@ export function SudokuInstance(options: Options = defaultOptions) {
       //enhance board to handle candidates, and possibly other params
       for (let j = 0; j < BOARD_SIZE * BOARD_SIZE; j++) {
         const cellValue =
-          typeof initBoardData[j] === 'undefined' ? null : initBoardData[j]
+          typeof initBoardData?.[j] === 'undefined' ? null : initBoardData[j]
         const candidates =
-          cellValue === null ? CANDIDATES.slice() : nullCandidateList.slice()
+          cellValue == null ? CANDIDATES.slice() : nullCandidateList.slice()
         board[j] = {
           value: cellValue,
           candidates,
@@ -1076,8 +1067,10 @@ export function SudokuInstance(options: Options = defaultOptions) {
     if (boardFinished) {
       if (!gradingMode) {
         //callback
-        boardFinishedFn({
-          difficultyInfo: calcBoardDifficulty(usedStrategies),
+        boardFinishedFn?.({
+          difficultyInfo: calcBoardDifficulty(
+            usedStrategies.filter(item => item > 0),
+          ),
         })
       }
       return //we're done!
@@ -1117,7 +1110,9 @@ export function SudokuInstance(options: Options = defaultOptions) {
         //callback
         if (typeof boardFinishedFn === 'function') {
           boardFinishedFn({
-            difficultyInfo: calcBoardDifficulty(usedStrategies),
+            difficultyInfo: calcBoardDifficulty(
+              usedStrategies.filter(item => item > 0),
+            ),
           })
         }
         //paint the last cell straight away
@@ -1160,7 +1155,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
       score: number
     } = {
       error: '',
-      finished: boardFinished,
+      finished: false,
       usedStrategies: [],
       level: DIFFICULTY_EASY,
       score: 0,
@@ -1182,7 +1177,9 @@ export function SudokuInstance(options: Options = defaultOptions) {
       }
 
       if (boardFinished) {
-        const boardDiff = calcBoardDifficulty(usedStrategies)
+        const boardDiff = calcBoardDifficulty(
+          usedStrategies.filter(item => item > 0),
+        )
         data.level = boardDiff.level
         data.score = boardDiff.score
       }
@@ -1220,16 +1217,12 @@ export function SudokuInstance(options: Options = defaultOptions) {
   }
 
   const generateBoardAnswerRecursively = (cellIndex: number) => {
-    console.log('generateBoardAnswerRecursively')
-
     if (cellIndex + 1 > BOARD_SIZE * BOARD_SIZE) {
       //done
       invalidCandidates = []
       return true
     }
-    const x = setBoardCellWithRandomCandidate(cellIndex)
-    console.log(x)
-    if (x) {
+    if (setBoardCellWithRandomCandidate(cellIndex)) {
       generateBoardAnswerRecursively(cellIndex + 1)
     } else {
       if (cellIndex <= 0) return false
@@ -1283,9 +1276,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     } else if (difficulty === DIFFICULTY_MEDIUM) {
       minGiven = 30
     }
-    if (BOARD_SIZE < 9) {
-      minGiven = 4
-    }
+
     for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
       cells.push(i)
     }
@@ -1293,19 +1284,20 @@ export function SudokuInstance(options: Options = defaultOptions) {
     while (cells.length > 0 && given > minGiven) {
       const randIndex = Math.round(Math.random() * (cells.length - 1))
       const cellIndex = cells.splice(randIndex, 1)
-      const value = board[Number(cellIndex)].value
+      const value = board[cellIndex[0]].value
 
       // remove value from this cell
-      setBoardCell(Number(cellIndex), null)
+      setBoardCell(cellIndex[0], null)
       // reset candidates, only in model.
       resetCandidates()
 
       const data = analyzeBoard()
+      // console.log(data.finished !== false, data.level)
       if (data.finished !== false && easyEnough(data.level)) {
         given--
       } else {
         // reset - don't dig this cell
-        setBoardCell(Number(cellIndex), value)
+        setBoardCell(cellIndex[0], value)
       }
     }
   }
@@ -1313,16 +1305,12 @@ export function SudokuInstance(options: Options = defaultOptions) {
   // generates board puzzle, i.e. the answers for this round
   // requires that a board for BOARD_SIZE has already been initiated
   const generateBoard = () => {
-    console.log('generateBoard')
-
     generatingMode = true
     solveMode = SOLVE_MODE_ALL
 
     // the board generated will possibly not be hard enough
     // (if you asked for "hard", you most likely get "medium")
     generateBoardAnswerRecursively(0)
-
-    console.log('here')
 
     // attempt one - save the answer, and try digging multiple times.
     const boardAnswer = board.slice()
@@ -1331,11 +1319,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     while (boardTooEasy) {
       digCells()
       const data = analyzeBoard()
-      console.log(
-        hardEnough(data.level),
-        data.level,
-        board.filter(cell => cell.value),
-      )
+      console.log(' hardEnough(data.level)', hardEnough(data.level))
       if (hardEnough(data.level)) boardTooEasy = false
       else board = boardAnswer
     }

@@ -1,10 +1,9 @@
 import {SudokuInstance} from './sudoku'
 
-const {generateBoard, getBoard} = SudokuInstance()
+const {getBoard} = SudokuInstance({difficulty: 'expert'})
 
 try {
-  generateBoard()
-  console.log(getBoard())
+  console.log(getBoard().map(cell => cell.value))
 } catch (e) {
   console.log(e)
 }
