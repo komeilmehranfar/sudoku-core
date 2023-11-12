@@ -62,6 +62,85 @@ describe('SudokuInstance', () => {
         ).toBe(true)
       })
     })
+    describe('boardErrorFn', () => {
+      it('should be called when passing invalid board', () => {
+        //Arrange
+        const invalidBoard = [1, 2, 3, 4]
+        let errorMessage = ''
+        const boardErrorFn = jest.fn(({message}) => {
+          errorMessage = message
+        })
+        const {solveAll} = SudokuInstance({
+          initBoardData: invalidBoard,
+          boardErrorFn,
+        })
+
+        //Act
+        solveAll()
+
+        // Assert
+        expect(boardErrorFn).toHaveBeenCalled()
+        expect(errorMessage).toBe('no more strategies')
+      })
+    })
+    describe('boardUpdatedFn', () => {
+      it('should be called when board is changed', () => {
+        //Arrange
+        let updatedData = {strategy: '', updatedCellsIndexes: []}
+        const boardUpdatedFn = jest.fn(args => {
+          updatedData = args
+        })
+        const {solveStep} = SudokuInstance({
+          boardUpdatedFn,
+        })
+
+        //Act
+        solveStep()
+
+        // Assert
+        expect(boardUpdatedFn).toHaveBeenCalled()
+        expect(
+          typeof updatedData.strategy === 'string' &&
+            updatedData.strategy.length > 0,
+        ).toBe(true)
+        // expect(errorMessage).toBe('no more strategies')
+      })
+    })
+    describe('boardFinishedFn', () => {
+      it('should be called when board is finished', () => {
+        //Arrange
+        const boardFinishedFn = jest.fn()
+        const {solveAll} = SudokuInstance({
+          boardFinishedFn,
+        })
+
+        //Act
+        solveAll()
+
+        // Assert
+        expect(boardFinishedFn).toHaveBeenCalled()
+        // expect(errorMessage).toBe('no more strategies')
+      })
+    })
+    it('should be called when board is finished', () => {
+      //Arrange
+      let finishedData = {level: '', score: 0}
+      const boardFinishedFn = jest.fn(args => {
+        finishedData = args
+      })
+      const {solveAll} = SudokuInstance({
+        boardFinishedFn,
+        difficulty: 'expert',
+      })
+
+      //Act
+      solveAll()
+
+      // Assert
+      expect(boardFinishedFn).toHaveBeenCalled()
+      expect(finishedData.level === 'expert').toBe(true)
+      // expect(errorMessage).toBe('no more strategies')
+    })
   })
 
   describe('getBoard method', () => {

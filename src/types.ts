@@ -30,3 +30,18 @@ export interface Strategy {
   score: number
   fn: StrategyFn
 }
+
+export interface Options {
+  boardErrorFn?: ({message}: {message: string}) => void
+  boardFinishedFn?: ({level, score}: {level: Difficulty; score: number}) => void
+  boardUpdatedFn?: ({
+    strategy,
+    updatedCellsIndexes,
+  }: {
+    strategy: string
+    updatedCellsIndexes: Array<number>
+  }) => void
+  candidateShowToggleFn?: (isShowing: boolean) => void
+  initBoardData?: InputBoard
+  difficulty?: Difficulty
+}

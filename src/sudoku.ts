@@ -15,23 +15,10 @@ import {
   OutputBoard,
   StrategyFn,
   Strategy,
+  Options,
 } from './types'
 import {contains, uniqueArray} from './utils'
 
-interface Options {
-  boardErrorFn?: ({message}: {message: string}) => void
-  boardFinishedFn?: ({difficultyInfo}: {difficultyInfo: unknown}) => void
-  boardUpdatedFn?: ({
-    cause,
-    cellsUpdated,
-  }: {
-    cause: unknown
-    cellsUpdated: unknown
-  }) => void
-  candidateShowToggleFn?: (isShowing: boolean) => void
-  initBoardData?: InputBoard
-  difficulty?: Difficulty
-}
 const defaultOptions: Options = {
   difficulty: DIFFICULTY_MEDIUM,
 }
@@ -212,12 +199,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
   const initBoard = () => {
     const alreadyEnhanced = board[0] !== null && typeof board[0] === 'object'
     const nullCandidateList = []
-    if (BOARD_SIZE % 1 !== 0 || Math.sqrt(BOARD_SIZE) % 1 !== 0) {
-      // log("invalid BOARD_SIZE: " + BOARD_SIZE);
-      if (typeof boardErrorFn === 'function')
-        boardErrorFn({message: 'invalid board size'})
-      return
-    }
+
     for (let i = 0; i < BOARD_SIZE; i++) {
       nullCandidateList.push(null)
     }
@@ -1031,11 +1013,9 @@ export function SudokuInstance(options: Options = defaultOptions) {
     if (boardFinished) {
       if (!gradingMode) {
         //callback
-        boardFinishedFn?.({
-          difficultyInfo: calcBoardDifficulty(
-            usedStrategies.filter(item => item > 0),
-          ),
-        })
+        boardFinishedFn?.(
+          calcBoardDifficulty(usedStrategies.filter(item => item > 0)),
+        )
       }
       return
     }
@@ -1062,8 +1042,8 @@ export function SudokuInstance(options: Options = defaultOptions) {
       //callback
       if (typeof boardUpdatedFn === 'function') {
         boardUpdatedFn({
-          cause: strategies[strategyIndex].title,
-          cellsUpdated: effectedCells,
+          strategy: strategies[strategyIndex].title,
+          updatedCellsIndexes: effectedCells as Array<number>,
         })
       }
 
@@ -1072,11 +1052,9 @@ export function SudokuInstance(options: Options = defaultOptions) {
         boardFinished = true
         //callback
         if (typeof boardFinishedFn === 'function') {
-          boardFinishedFn({
-            difficultyInfo: calcBoardDifficulty(
-              usedStrategies.filter(item => item > 0),
-            ),
-          })
+          boardFinishedFn(
+            calcBoardDifficulty(usedStrategies.filter(item => item > 0)),
+          )
         }
         //paint the last cell straight away
       }
@@ -1300,6 +1278,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     board = convertBoardToSerializedBoard(initBoardData)
     initBoard()
     visualEliminationOfCandidates()
+    analyzeBoard()
   }
 
   /**
