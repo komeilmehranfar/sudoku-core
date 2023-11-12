@@ -1,46 +1,82 @@
 import {SudokuInstance} from './sudoku' // Import the SudokuInstance module (update path as needed)
 
 describe('SudokuInstance', () => {
-  describe('generateBoard method', () => {
-    it('should generate a valid easy difficulty board', () => {
-      //Arrange
-      const sudoku = SudokuInstance({difficulty: 'easy'})
+  describe('options', () => {
+    describe('difficulty', () => {
+      it('should generate a valid easy difficulty board', () => {
+        //Arrange
+        const sudoku = SudokuInstance({difficulty: 'easy'})
 
-      //Act
-      const analyze = sudoku.analyzeBoard()
+        //Act
+        const analyze = sudoku.analyzeBoard()
 
-      // Assert
-      expect(analyze.level).toBe('easy')
+        // Assert
+        expect(analyze.level).toBe('easy')
+      })
+      it('should generate a valid medium difficulty board', () => {
+        //Arrange
+        const sudoku = SudokuInstance({difficulty: 'medium'})
+
+        //Act
+        const analyze = sudoku.analyzeBoard()
+
+        // Assert
+        expect(analyze.level).toBe('medium')
+      })
+      it('should generate a valid hard difficulty board', () => {
+        //Arrange
+        const sudoku = SudokuInstance({difficulty: 'hard'})
+
+        //Act
+        const analyze = sudoku.analyzeBoard()
+
+        // Assert
+        expect(analyze.level).toBe('hard')
+      })
+      it('should generate a valid expert difficulty board', () => {
+        //Arrange
+        const sudoku = SudokuInstance({difficulty: 'expert'})
+
+        //Act
+        const analyze = sudoku.analyzeBoard()
+
+        // Assert
+        expect(analyze.level).toBe('expert')
+      })
     })
-    it('should generate a valid medium difficulty board', () => {
-      //Arrange
-      const sudoku = SudokuInstance({difficulty: 'medium'})
+    describe('initialBoard', () => {
+      it('should work with the board passed', () => {
+        //Arrange
+        const sudoku = SudokuInstance({difficulty: 'hard'})
+        const board = sudoku.getBoard()
 
-      //Act
-      const analyze = sudoku.analyzeBoard()
+        //Act
+        const newSudoku = SudokuInstance({initBoardData: board})
 
-      // Assert
-      expect(analyze.level).toBe('medium')
+        // Assert
+        const newAnalyze = newSudoku.analyzeBoard()
+        const newBoard = newSudoku.getBoard()
+        expect(newAnalyze.level).toBe('hard')
+        expect(
+          newBoard.every((newCell, index) => board[index] == newCell),
+        ).toBe(true)
+      })
     })
-    it('should generate a valid hard difficulty board', () => {
-      //Arrange
-      const sudoku = SudokuInstance({difficulty: 'hard'})
+  })
 
-      //Act
-      const analyze = sudoku.analyzeBoard()
-
-      // Assert
-      expect(analyze.level).toBe('hard')
-    })
-    it('should generate a valid expert difficulty board', () => {
+  describe('getBoard method', () => {
+    it('should return the board', () => {
       //Arrange
       const sudoku = SudokuInstance({difficulty: 'expert'})
 
       //Act
-      const analyze = sudoku.analyzeBoard()
+      const board = sudoku.getBoard()
 
       // Assert
-      expect(analyze.level).toBe('expert')
+      expect(board.length === 81).toBe(true)
+      board.forEach(cell => {
+        expect(typeof cell === 'number' || cell == null).toBe(true)
+      })
     })
   })
   describe('solveAll method', () => {

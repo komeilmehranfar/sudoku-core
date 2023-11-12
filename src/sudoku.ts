@@ -264,9 +264,6 @@ export function SudokuInstance(options: Options = defaultOptions) {
     //log("removeCandidatesFromCells");
     const cellsUpdated = []
     for (let i = 0; i < cells.length; i++) {
-      if (!board[cells[i]]) {
-        console.log(board[cells[i]], cells[i], cells)
-      }
       const c = board[cells[i]].candidates
 
       for (let j = 0; j < candidates.length; j++) {
@@ -287,21 +284,6 @@ export function SudokuInstance(options: Options = defaultOptions) {
     onlyUpdatedCandidates = false
     usedStrategies = []
     gradingMode = false
-  }
-
-  /* clearBoard
-          -----------------------------------------------------------------*/
-  const clearBoard = () => {
-    resetBoardVariables()
-
-    //reset board variable
-    const candidates = CANDIDATES.slice(0)
-    for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-      board[i] = {
-        value: null,
-        candidates: candidates.slice(),
-      }
-    }
   }
 
   const getNullCandidatesList = () => {
@@ -952,7 +934,6 @@ export function SudokuInstance(options: Options = defaultOptions) {
             if (candidate) {
               combinedCandidates.push(candidate)
             }
-            console.log(combineInfo[x].cells, cellsWithCandidates)
             cellsWithCandidates = [
               ...cellsWithCandidates,
               ...(combineInfo[x].cells || []),
@@ -1341,20 +1322,11 @@ export function SudokuInstance(options: Options = defaultOptions) {
 
   const getBoard = () => board.map(cell => cell.value)
 
-  const setBoard = (newBoard: InputBoard) => {
-    clearBoard() // if any pre-existing
-    board = convertBoardToSerializedBoard(newBoard)
-    initBoard()
-    visualEliminationOfCandidates()
-  }
-
   return {
     solveAll,
     solveStep,
     analyzeBoard,
-    clearBoard,
     getBoard,
-    setBoard,
     generateBoard,
   }
 }
