@@ -1,25 +1,23 @@
-const DIFFICULTY_EASY = 'easy'
-const DIFFICULTY_MEDIUM = 'medium'
-const DIFFICULTY_HARD = 'hard'
-const DIFFICULTY_VERY_HARD = 'expert'
+import {
+  DIFFICULTY_EASY,
+  DIFFICULTY_MEDIUM,
+  DIFFICULTY_HARD,
+  DIFFICULTY_EXPERT,
+  SOLVE_MODE_STEP,
+  SOLVE_MODE_ALL,
+  BOARD_SIZE,
+  CANDIDATES,
+} from './constants'
+import {
+  Difficulty,
+  InputBoard,
+  CellValue,
+  OutputBoard,
+  StrategyFn,
+  Strategy,
+} from './types'
+import {contains, uniqueArray} from './utils'
 
-const SOLVE_MODE_STEP = 'step'
-const SOLVE_MODE_ALL = 'all'
-const BOARD_SIZE = 9
-const CANDIDATES = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-type Difficulty =
-  | typeof DIFFICULTY_EASY
-  | typeof DIFFICULTY_MEDIUM
-  | typeof DIFFICULTY_HARD
-  | typeof DIFFICULTY_VERY_HARD
-type InputBoard = Array<number | null>
-type CellValue = number | null
-type Cell = {
-  value: CellValue
-  candidates: Array<CellValue>
-}
-type OutputBoard = Array<Cell>
 interface Options {
   boardErrorFn?: ({message}: {message: string}) => void
   boardFinishedFn?: ({difficultyInfo}: {difficultyInfo: unknown}) => void
@@ -34,13 +32,10 @@ interface Options {
   initBoardData?: InputBoard
   difficulty?: Difficulty
 }
-const defaultOptions: Options = {}
-type StrategyFn = () => boolean | Array<number> | number
-interface Strategy {
-  title: string
-  score: number
-  fn: StrategyFn
+const defaultOptions: Options = {
+  difficulty: DIFFICULTY_MEDIUM,
 }
+
 export function SudokuInstance(options: Options = defaultOptions) {
   const {
     boardErrorFn,
@@ -102,7 +97,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
   ]
 
   //nr of times each strategy has been used for solving this board - used to calculate difficulty score
-  let usedStrategies: Array<number> = strategies.map(() => 0)
+  let usedStrategies: Array<number> = []
 
   /*board variable gets enhanced into list of objects on init:
             ,{
@@ -126,24 +121,6 @@ export function SudokuInstance(options: Options = defaultOptions) {
   // all rows, columns and boxes
 
   let boxOfHouses: Houses[] = [[], [], []]
-
-  //array contains function
-  const contains = (array: Array<unknown>, object: unknown) => {
-    for (let i = 0; i < array.length; i++) {
-      if (array[i] === object) {
-        return true
-      }
-    }
-    return false
-  }
-
-  const uniqueArray = (array: Array<number>): Array<number> => {
-    const temp: Record<number, unknown> = {}
-    for (let i = 0; i < array.length; i++) temp[array[i]] = true
-    const record: number[] = []
-    for (const k in temp) record.push(Number(k))
-    return record
-  }
 
   /* calcBoardDifficulty
    * --------------
@@ -176,7 +153,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
 
     if (totalScore > 750)
       // if(totalScore > 2200)
-      boardDiff.level = DIFFICULTY_VERY_HARD
+      boardDiff.level = DIFFICULTY_EXPERT
 
     return boardDiff
   }
@@ -287,6 +264,9 @@ export function SudokuInstance(options: Options = defaultOptions) {
     //log("removeCandidatesFromCells");
     const cellsUpdated = []
     for (let i = 0; i < cells.length; i++) {
+      if (!board[cells[i]]) {
+        console.log(board[cells[i]], cells[i], cells)
+      }
       const c = board[cells[i]].candidates
 
       for (let j = 0; j < candidates.length; j++) {
@@ -414,11 +394,11 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * --------------
    *  returns list of candidates for cell (with null's removed)
    * -----------------------------------------------------------------*/
-  const candidatesLeft = (cellIndex: number) => {
+  const candidatesLeft = (cellIndex: number): Array<number> => {
     const t = []
     const candidates = board[cellIndex].candidates
     for (let i = 0; i < candidates.length; i++) {
-      if (candidates[i] !== null) t.push(candidates[i])
+      if (candidates[i] !== null) t.push(candidates[i] as number)
     }
     return t
   }
@@ -733,10 +713,10 @@ export function SudokuInstance(options: Options = defaultOptions) {
            * -- returns effectedCells - the updated cell(s), or false
            * -----------------------------------------------------------------*/
   let combineInfo: Array<{
-    cell?: CellValue
-    candidate?: CellValue
-    cells?: Array<CellValue>
-    candidates?: Array<CellValue>
+    cell?: number
+    candidates?: Array<number>
+    candidate?: number
+    cells?: Array<number>
   }> = []
   let minIndexes = [-1]
   function nakedCandidatesStrategy(number: number) {
@@ -879,7 +859,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * see nakedCandidateElimination for explanation
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function nakedPairStrategy(): ReturnType<StrategyFn> {
+  function nakedPairStrategy() {
     return nakedCandidatesStrategy(2)
   }
 
@@ -888,7 +868,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * see nakedCandidateElimination for explanation
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function nakedTripletStrategy(): ReturnType<StrategyFn> {
+  function nakedTripletStrategy() {
     return nakedCandidatesStrategy(3)
   }
 
@@ -897,7 +877,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * see nakedCandidateElimination for explanation
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function nakedQuadrupleStrategy(): ReturnType<StrategyFn> {
+  function nakedQuadrupleStrategy() {
     return nakedCandidatesStrategy(4)
   }
 
@@ -908,7 +888,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
            *
            * -- returns effectedCells - the updated cell(s), or false
            * -----------------------------------------------------------------*/
-  function hiddenLockedCandidates(number: number): ReturnType<StrategyFn> {
+  function hiddenLockedCandidates(number: number) {
     function checkLockedCandidates(
       house: House,
       startIndex: number,
@@ -966,12 +946,17 @@ export function SudokuInstance(options: Options = defaultOptions) {
           //now we need to check whether this eliminates any candidates
 
           const combinedCandidates: Array<number> = [] //not unique now...
-          let cellsWithCandidates: Array<number> = [] //not unique either..
+          let cellsWithCandidates: Array<CellValue> = [] //not unique either..
           for (let x = 0; x < combineInfo.length; x++) {
-            combinedCandidates.push(combineInfo[x].candidate as number)
-            cellsWithCandidates = cellsWithCandidates.concat(
-              combineInfo[x].cells as number[],
-            )
+            const candidate = combineInfo[x].candidate
+            if (candidate) {
+              combinedCandidates.push(candidate)
+            }
+            console.log(combineInfo[x].cells, cellsWithCandidates)
+            cellsWithCandidates = [
+              ...cellsWithCandidates,
+              ...(combineInfo[x].cells || []),
+            ]
           }
 
           const candidatesToRemove = []
@@ -984,7 +969,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
 
           //remove all other candidates from cellsWithCandidates
           const cellsUpdated = removeCandidatesFromCells(
-            cellsWithCandidates,
+            cellsWithCandidates as number[],
             candidatesToRemove,
           )
 
@@ -996,7 +981,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
             onlyUpdatedCandidates = true
 
             //filter out duplicates
-            return uniqueArray(cellsWithCandidates)
+            return uniqueArray(cellsWithCandidates as number[])
           }
         }
       }
@@ -1031,7 +1016,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * see hiddenLockedCandidates for explanation
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function hiddenPairStrategy(): ReturnType<StrategyFn> {
+  function hiddenPairStrategy() {
     return hiddenLockedCandidates(2)
   }
 
@@ -1040,7 +1025,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * see hiddenLockedCandidates for explanation
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function hiddenTripletStrategy(): ReturnType<StrategyFn> {
+  function hiddenTripletStrategy() {
     return hiddenLockedCandidates(3)
   }
 
@@ -1049,7 +1034,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * see hiddenLockedCandidates for explanation
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function hiddenQuadrupleStrategy(): ReturnType<StrategyFn> {
+  function hiddenQuadrupleStrategy() {
     return hiddenLockedCandidates(4)
   }
 
@@ -1060,10 +1045,8 @@ export function SudokuInstance(options: Options = defaultOptions) {
    *		calls itself with i++
    *  returns canContinue true|false - only relevant for solveMode "all"
    * -----------------------------------------------------------------*/
-  let effectedCells: ReturnType<StrategyFn> = false
 
   const solveFn = (strategyIndex: number): boolean | undefined => {
-    //log(i);
     if (boardFinished) {
       if (!gradingMode) {
         //callback
@@ -1073,12 +1056,11 @@ export function SudokuInstance(options: Options = defaultOptions) {
           ),
         })
       }
-      return //we're done!
+      return
     }
 
-    const strategy = strategies[strategyIndex].fn
+    const effectedCells = strategies[strategyIndex].fn()
     //log("use strategy nr:" +i);
-    effectedCells = strategy()
 
     if (effectedCells === false) {
       if (strategies.length > strategyIndex + 1) {
@@ -1124,6 +1106,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     //we got an answer, using strategy i
     if (typeof usedStrategies[strategyIndex] === 'undefined')
       usedStrategies[strategyIndex] = 0
+
     usedStrategies[strategyIndex] = usedStrategies[strategyIndex] + 1
 
     return true // can continue
@@ -1247,7 +1230,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     if (level === DIFFICULTY_MEDIUM) return difficulty !== DIFFICULTY_EASY
     if (level === DIFFICULTY_HARD)
       return difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
-    if (level === DIFFICULTY_VERY_HARD)
+    if (level === DIFFICULTY_EXPERT)
       return (
         difficulty !== DIFFICULTY_EASY &&
         difficulty !== DIFFICULTY_MEDIUM &&
@@ -1259,7 +1242,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     if (difficulty === DIFFICULTY_MEDIUM) return level !== DIFFICULTY_EASY
     if (difficulty === DIFFICULTY_HARD)
       return level !== DIFFICULTY_EASY && level !== DIFFICULTY_MEDIUM
-    if (difficulty === DIFFICULTY_VERY_HARD)
+    if (difficulty === DIFFICULTY_EXPERT)
       return (
         level !== DIFFICULTY_EASY &&
         level !== DIFFICULTY_MEDIUM &&
@@ -1319,7 +1302,6 @@ export function SudokuInstance(options: Options = defaultOptions) {
     while (boardTooEasy) {
       digCells()
       const data = analyzeBoard()
-      console.log(' hardEnough(data.level)', hardEnough(data.level))
       if (hardEnough(data.level)) boardTooEasy = false
       else board = boardAnswer
     }
@@ -1357,7 +1339,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
     solveFn(startStrategy)
   }
 
-  const getBoard = () => board
+  const getBoard = () => board.map(cell => cell.value)
 
   const setBoard = (newBoard: InputBoard) => {
     clearBoard() // if any pre-existing
