@@ -27,27 +27,21 @@
     "dist"
   ],
   "keywords": [
-    "example",
-    "typescript",
+    "sudoku",
+    "sudoku-generator",
+    "sudoku-solver",
     "npm",
-    "package",
-    "sample",
-    "boilerplate",
-    "starter",
-    "demo",
-    "cjs",
-    "esm",
-    "umd"
+    "package"
   ],
-  "author": "Tom Chen <tomchen.org@gmail.com>",
+  "author": "Komeil Mehranfar <komeil.mehranfar@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/tomchen/example-typescript-package",
+  "homepage": "https://github.com/komeilmehranfar/sudoku-core",
   "repository": {
     "type": "git",
-    "url": "git@github.com:tomchen/example-typescript-package.git"
+    "url": "git@github.com:komeilmehranfar/sudoku-core.git"
   },
   "bugs": {
-    "url": "https://github.com/tomchen/example-typescript-package/issues"
+    "url": "https://github.com/komeilmehranfar/sudoku-core/issues"
   },
   "dependencies": {},
   "devDependencies": {
