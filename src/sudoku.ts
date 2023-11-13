@@ -23,7 +23,7 @@ const defaultOptions: Options = {
   difficulty: DIFFICULTY_MEDIUM,
 }
 
-export function SudokuInstance(options: Options = defaultOptions) {
+export function createSudokuInstance(options: Options = defaultOptions) {
   const {
     boardErrorFn,
     boardUpdatedFn,
@@ -109,40 +109,36 @@ export function SudokuInstance(options: Options = defaultOptions) {
 
   let boxOfHouses: Houses[] = [[], [], []]
 
-  /* calcBoardDifficulty
+  /* calculateBoardDifficulty
    * --------------
    *  TYPE: solely based on strategies required to solve board (i.e. single count per strategy)
    *  SCORE: distinguish between boards of same difficulty.. based on point system. Needs work.
    * -----------------------------------------------------------------*/
-  const calcBoardDifficulty = (
+  const calculateBoardDifficulty = (
     usedStrategies: Array<number>,
-  ): {
-    level: Difficulty
-    score: number
-  } => {
-    const boardDiff: {level: Difficulty; score: number} = {
-      level: DIFFICULTY_EASY,
-      score: 0,
+  ): {level: Difficulty; score: number} => {
+    const totalScore = usedStrategies.reduce(
+      (accumulatedScore, frequency, i) => {
+        if (!frequency) return accumulatedScore //undefined or 0, won't effect score
+        const strategy = strategies[i]
+        return accumulatedScore + frequency * strategy.score
+      },
+      0,
+    )
+
+    let level: Difficulty =
+      usedStrategies.length < 3
+        ? DIFFICULTY_EASY
+        : usedStrategies.length < 4
+        ? DIFFICULTY_MEDIUM
+        : DIFFICULTY_HARD
+
+    if (totalScore > 750) level = DIFFICULTY_EXPERT
+
+    return {
+      level,
+      score: totalScore,
     }
-    if (usedStrategies.length < 3) boardDiff.level = DIFFICULTY_EASY
-    else if (usedStrategies.length < 4) boardDiff.level = DIFFICULTY_MEDIUM
-    else boardDiff.level = DIFFICULTY_HARD
-
-    let totalScore = 0
-    for (let i = 0; i < strategies.length; i++) {
-      const frequency = usedStrategies[i]
-      if (!frequency) continue //undefined or 0, won't effect score
-      const strategy = strategies[i]
-      totalScore += frequency * strategy.score
-    }
-    boardDiff.score = totalScore
-    //log("totalScore: "+totalScore);
-
-    if (totalScore > 750)
-      // if(totalScore > 2200)
-      boardDiff.level = DIFFICULTY_EXPERT
-
-    return boardDiff
   }
 
   /* isBoardFinished
@@ -236,14 +232,14 @@ export function SudokuInstance(options: Options = defaultOptions) {
     }
   }
 
-  /* removeCandidatesFromCells
+  /* removeCandidatesFromMultipleCells
            * ---returns list of cells where any candidates where removed
           -----------------------------------------------------------------*/
-  const removeCandidatesFromCells = (
+  const removeCandidatesFromMultipleCells = (
     cells: Array<number>,
     candidates: Array<number>,
   ) => {
-    //log("removeCandidatesFromCells");
+    //log("removeCandidatesFromMultipleCells");
     const cellsUpdated = []
     for (let i = 0; i < cells.length; i++) {
       const c = board[cells[i]].candidates
@@ -326,7 +322,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
 
   /* numbersLeft
    * --------------
-   *  returns unused numbers in a house
+   *  returns used numbers in a house
    * -----------------------------------------------------------------*/
   const numbersLeft = (house: House) => {
     const numbers = CANDIDATES.slice()
@@ -340,18 +336,13 @@ export function SudokuInstance(options: Options = defaultOptions) {
     return numbers
   }
 
-  /* numbersTaken
+  /* getUsedNumbers
    * --------------
    *  returns used numbers in a house
    * -----------------------------------------------------------------*/
-  const numbersTaken = (house: House) => {
-    const numbers = []
-    for (let i = 0; i < house.length; i++) {
-      const n = board[house[i]].value
-      if (n !== null) numbers.push(n)
-    }
-    //return remaining numbers
-    return numbers
+  const getUsedNumbers = (house: House) => {
+    // filter out cells that have values
+    return house.map(cellIndex => board[cellIndex].value).filter(Boolean)
   }
 
   /* candidatesLeft
@@ -439,30 +430,36 @@ export function SudokuInstance(options: Options = defaultOptions) {
     return false
   }
 
-  /* visualEliminationOfCandidates
+  /* eliminateCandidatesVisually
            * --------------
            * ALWAYS returns false
            * -- special compared to other strategies: doesn't step - updates whole board,
            in one go. Since it also only updates candidates, we can skip straight to next strategy, since we know that neither this one nor the one(s) before (that only look at actual numbers on board), will find anything new.
            * -----------------------------------------------------------------*/
-  function visualEliminationOfCandidates() {
-    //for each type of house..(hor row / vert row / box)
+  function eliminateCandidatesVisually() {
     const boxOfHousesLength = boxOfHouses.length
     for (let i = 0; i < boxOfHousesLength; i++) {
-      //for each such house
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        const house = boxOfHouses[i][j]
-        const candidatesToRemove = numbersTaken(house)
-        //log(candidatesToRemove);
-
-        // for each cell..
-        for (let k = 0; k < BOARD_SIZE; k++) {
-          const cell = house[k]
-          removeCandidatesFromCell(cell, candidatesToRemove)
-        }
-      }
+      processEachHouseType(i)
     }
     return false
+  }
+
+  function processEachHouseType(houseType: number) {
+    for (let j = 0; j < BOARD_SIZE; j++) {
+      const house = boxOfHouses[houseType][j]
+      const candidatesToRemove = getUsedNumbers(house)
+      removeCandidatesFromEachHouse(house, candidatesToRemove)
+    }
+  }
+
+  function removeCandidatesFromEachHouse(
+    house: House,
+    candidatesToRemove: CellValue[],
+  ) {
+    for (let k = 0; k < BOARD_SIZE; k++) {
+      const cell = house[k]
+      removeCandidatesFromCell(cell, candidatesToRemove as Array<number>)
+    }
   }
 
   const convertBoardToSerializedBoard = (
@@ -530,7 +527,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
    * -----------------------------------------------------------------*/
   function singleCandidateStrategy(): ReturnType<StrategyFn> {
     //before we start with candidate strategies, we need to update candidates from last round:
-    visualEliminationOfCandidates() //TODO: a bit hacky, should probably not be here
+    eliminateCandidatesVisually() //TODO: a bit hacky, should probably not be here
 
     //for each cell
 
@@ -649,9 +646,10 @@ export function SudokuInstance(options: Options = defaultOptions) {
             //log("boxOfHouses["+houseType+"]["+h[houseType]+"].length: "+boxOfHouses[houseType][h[houseType]].length);
 
             //remove all candidates on altHouse, outside of house
-            const cellsUpdated = removeCandidatesFromCells(cellsEffected, [
-              digit,
-            ])
+            const cellsUpdated = removeCandidatesFromMultipleCells(
+              cellsEffected,
+              [digit],
+            )
 
             if (cellsUpdated.length > 0) {
               // log("pointing: digit "+digit+", from houseType: "+houseType);
@@ -789,7 +787,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
           }
 
           //remove all candidates on house, except the on cells matched in pattern
-          const cellsUpdated = removeCandidatesFromCells(
+          const cellsUpdated = removeCandidatesFromMultipleCells(
             cellsEffected,
             combinedCandidates as number[],
           )
@@ -931,7 +929,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
           //log(candidatesToRemove);
 
           //remove all other candidates from cellsWithCandidates
-          const cellsUpdated = removeCandidatesFromCells(
+          const cellsUpdated = removeCandidatesFromMultipleCells(
             cellsWithCandidates as number[],
             candidatesToRemove,
           )
@@ -1014,7 +1012,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
       if (!gradingMode) {
         //callback
         boardFinishedFn?.(
-          calcBoardDifficulty(usedStrategies.filter(item => item > 0)),
+          calculateBoardDifficulty(usedStrategies.filter(item => item > 0)),
         )
       }
       return
@@ -1053,7 +1051,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
         //callback
         if (typeof boardFinishedFn === 'function') {
           boardFinishedFn(
-            calcBoardDifficulty(usedStrategies.filter(item => item > 0)),
+            calculateBoardDifficulty(usedStrategies.filter(item => item > 0)),
           )
         }
         //paint the last cell straight away
@@ -1119,7 +1117,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
       }
 
       if (boardFinished) {
-        const boardDiff = calcBoardDifficulty(
+        const boardDiff = calculateBoardDifficulty(
           usedStrategies.filter(item => item > 0),
         )
         data.level = boardDiff.level
@@ -1137,7 +1135,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
 
   const setBoardCellWithRandomCandidate = (cellIndex: number) => {
     // CHECK still valid
-    visualEliminationOfCandidates()
+    eliminateCandidatesVisually()
     // DRAW RANDOM CANDIDATE
     // don't draw already invalidated candidates for cell
     const invalids = invalidCandidates && invalidCandidates[cellIndex]
@@ -1265,7 +1263,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
       else board = boardAnswer
     }
     solveMode = SOLVE_MODE_STEP
-    visualEliminationOfCandidates()
+    eliminateCandidatesVisually()
   }
 
   /*
@@ -1277,7 +1275,7 @@ export function SudokuInstance(options: Options = defaultOptions) {
   } else {
     board = convertBoardToSerializedBoard(initBoardData)
     initBoard()
-    visualEliminationOfCandidates()
+    eliminateCandidatesVisually()
     analyzeBoard()
   }
 

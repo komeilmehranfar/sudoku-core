@@ -1,2 +1,2 @@
-export {SudokuInstance} from './sudoku'
+export {createSudokuInstance} from './sudoku'
 export {Options} from './types'

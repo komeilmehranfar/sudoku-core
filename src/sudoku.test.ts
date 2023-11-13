@@ -1,11 +1,11 @@
-import {SudokuInstance} from './sudoku' // Import the SudokuInstance module (update path as needed)
+import {createSudokuInstance} from './sudoku' // Import the createSudokuInstance module (update path as needed)
 
-describe('SudokuInstance', () => {
+describe('createSudokuInstance', () => {
   describe('options', () => {
     describe('difficulty', () => {
       it('should generate a valid easy difficulty board', () => {
         //Arrange
-        const sudoku = SudokuInstance({difficulty: 'easy'})
+        const sudoku = createSudokuInstance({difficulty: 'easy'})
 
         //Act
         const analyze = sudoku.analyzeBoard()
@@ -15,7 +15,7 @@ describe('SudokuInstance', () => {
       })
       it('should generate a valid medium difficulty board', () => {
         //Arrange
-        const sudoku = SudokuInstance({difficulty: 'medium'})
+        const sudoku = createSudokuInstance({difficulty: 'medium'})
 
         //Act
         const analyze = sudoku.analyzeBoard()
@@ -25,7 +25,7 @@ describe('SudokuInstance', () => {
       })
       it('should generate a valid hard difficulty board', () => {
         //Arrange
-        const sudoku = SudokuInstance({difficulty: 'hard'})
+        const sudoku = createSudokuInstance({difficulty: 'hard'})
 
         //Act
         const analyze = sudoku.analyzeBoard()
@@ -35,7 +35,7 @@ describe('SudokuInstance', () => {
       })
       it('should generate a valid expert difficulty board', () => {
         //Arrange
-        const sudoku = SudokuInstance({difficulty: 'expert'})
+        const sudoku = createSudokuInstance({difficulty: 'expert'})
 
         //Act
         const analyze = sudoku.analyzeBoard()
@@ -47,11 +47,11 @@ describe('SudokuInstance', () => {
     describe('initialBoard', () => {
       it('should work with the board passed', () => {
         //Arrange
-        const sudoku = SudokuInstance({difficulty: 'hard'})
+        const sudoku = createSudokuInstance({difficulty: 'hard'})
         const board = sudoku.getBoard()
 
         //Act
-        const newSudoku = SudokuInstance({initBoardData: board})
+        const newSudoku = createSudokuInstance({initBoardData: board})
 
         // Assert
         const newAnalyze = newSudoku.analyzeBoard()
@@ -70,7 +70,7 @@ describe('SudokuInstance', () => {
         const boardErrorFn = jest.fn(({message}) => {
           errorMessage = message
         })
-        const {solveAll} = SudokuInstance({
+        const {solveAll} = createSudokuInstance({
           initBoardData: invalidBoard,
           boardErrorFn,
         })
@@ -90,7 +90,7 @@ describe('SudokuInstance', () => {
         const boardUpdatedFn = jest.fn(args => {
           updatedData = args
         })
-        const {solveStep} = SudokuInstance({
+        const {solveStep} = createSudokuInstance({
           boardUpdatedFn,
         })
 
@@ -110,7 +110,7 @@ describe('SudokuInstance', () => {
       it('should be called when board is finished', () => {
         //Arrange
         const boardFinishedFn = jest.fn()
-        const {solveAll} = SudokuInstance({
+        const {solveAll} = createSudokuInstance({
           boardFinishedFn,
         })
 
@@ -128,7 +128,7 @@ describe('SudokuInstance', () => {
       const boardFinishedFn = jest.fn(args => {
         finishedData = args
       })
-      const {solveAll} = SudokuInstance({
+      const {solveAll} = createSudokuInstance({
         boardFinishedFn,
         difficulty: 'expert',
       })
@@ -146,7 +146,7 @@ describe('SudokuInstance', () => {
   describe('getBoard method', () => {
     it('should return the board', () => {
       //Arrange
-      const sudoku = SudokuInstance({difficulty: 'expert'})
+      const sudoku = createSudokuInstance({difficulty: 'expert'})
 
       //Act
       const board = sudoku.getBoard()
@@ -161,7 +161,7 @@ describe('SudokuInstance', () => {
   describe('solveAll method', () => {
     it('should solve the board', () => {
       //Arrange
-      const sudoku = SudokuInstance({difficulty: 'expert'})
+      const sudoku = createSudokuInstance({difficulty: 'expert'})
 
       //Act
       sudoku.solveAll()
@@ -174,7 +174,7 @@ describe('SudokuInstance', () => {
   describe('solveStep method', () => {
     it('should solve one more step', () => {
       //Arrange
-      const sudoku = SudokuInstance({difficulty: 'expert'})
+      const sudoku = createSudokuInstance({difficulty: 'expert'})
       const boardBefore = sudoku.getBoard()
 
       //Act
@@ -189,7 +189,7 @@ describe('SudokuInstance', () => {
     })
     it('should do nothing', () => {
       //Arrange
-      const sudoku = SudokuInstance({difficulty: 'expert'})
+      const sudoku = createSudokuInstance({difficulty: 'expert'})
       sudoku.solveAll()
 
       //Act
