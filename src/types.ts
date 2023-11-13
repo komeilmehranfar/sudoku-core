@@ -52,12 +52,12 @@ export type House = Array<number>
 export type Houses = Array<House>
 
 export type AnalyzeData = {
-  error: string
-  finished: boolean
-  usedStrategies: ({
+  error?: string
+  finished?: boolean
+  usedStrategies?: ({
     title: string
     freq: number
   } | null)[]
-  level: Difficulty
-  score: number
+  level?: Difficulty
+  score?: number
 }

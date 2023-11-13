@@ -40,7 +40,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     SOLVE_MODE_STEP
   let board: InternalBoardType = []
 
-  let boardFinished = false
   let boardError = false
   let onlyUpdatedCandidates = false
 
@@ -162,7 +161,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
    * -----------------------------------------------------------------*/
   const isBoardFinished = () => {
     for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-      if (board[i].value === null) return false
+      if (board[i].value == null) return false
     }
     return true
   }
@@ -223,7 +222,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
             ? null
             : initBoardData[index]
         const candidates =
-          value === null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice()
+          value == null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice()
         return {
           value,
           candidates,
@@ -251,23 +250,23 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     cells: Array<number>,
     candidates: Array<CellValue>,
   ) => {
-    const cellsUpdated = cells.reduce((updatedCells, cellIndex) => {
-      const cell = board[cellIndex]
-      const initialCandidatesLength = cell.candidates.length
-      cell.candidates = cell.candidates.filter(
-        candidate => !candidates.includes(candidate),
-      )
-      if (cell.candidates.length !== initialCandidatesLength) {
-        updatedCells.push(cellIndex)
-      }
-      return updatedCells
-    }, [] as Array<number>)
+    const cellsUpdated = []
+    for (let i = 0; i < cells.length; i++) {
+      const c = board[cells[i]].candidates
 
+      for (let j = 0; j < candidates.length; j++) {
+        const candidate = candidates[j]
+        //-1 because candidate '1' is at index 0 etc.
+        if (c[Number(candidate) - 1] !== null) {
+          c[Number(candidate) - 1] = null //NOTE: also deletes them from board variable
+          cellsUpdated.push(cells[i]) //will push same cell multiple times
+        }
+      }
+    }
     return cellsUpdated
   }
 
   const resetBoardVariables = () => {
-    boardFinished = false
     boardError = false
     onlyUpdatedCandidates = false
     usedStrategies = []
@@ -346,10 +345,8 @@ export function createSudokuInstance(options: Options = defaultOptions) {
    * --------------
    *  returns list of candidates for cell (with null's removed)
    * -----------------------------------------------------------------*/
-  const getRemainingCandidates = (cellIndex: number): Array<number> => {
-    return board[cellIndex].candidates.filter(
-      candidate => candidate !== null,
-    ) as Array<number>
+  const getRemainingCandidates = (cellIndex: number): Array<CellValue> => {
+    return board[cellIndex].candidates.filter(candidate => candidate !== null)
   }
 
   /* getPossibleCellsForCandidate
@@ -386,8 +383,10 @@ export function createSudokuInstance(options: Options = defaultOptions) {
         if (isHouseCompleted(i, j)) {
           housesCompleted++
           if (isAllHousesCompleted(housesCompleted)) {
-            boardFinished = true
-            return -1
+            if (isBoardFinished()) {
+              boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
+            }
+            return true
           }
         }
       }
@@ -400,7 +399,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
     for (let k = 0; k < BOARD_SIZE; k++) {
       const boardIndex = boxOfHouses[i][j][k]
-      if (board[boardIndex].value === null) {
+      if (board[boardIndex].value == null) {
         emptyCells.push({house: boxOfHouses[i][j], cellIndex: boardIndex})
         if (emptyCells.length > 1) {
           break
@@ -420,7 +419,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
     if (value.length > 1) {
       boardError = true
-      return -1 //error
+      return false //error
     }
 
     setBoardCell(emptyCell.cellIndex, value[0]) //does not update UI
@@ -464,7 +463,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   ) {
     for (let k = 0; k < BOARD_SIZE; k++) {
       const cell = house[k]
-      removeCandidatesFromCell(cell, candidatesToRemove as Array<number>)
+      removeCandidatesFromCell(cell, candidatesToRemove)
     }
   }
 
@@ -475,7 +474,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     return new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, i) => ({
       value: _board[i] || null,
       candidates:
-        _board[i] === null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice(),
+        _board[i] == null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice(),
     }))
   }
 
@@ -680,14 +679,13 @@ export function createSudokuInstance(options: Options = defaultOptions) {
            *
            * -- returns effectedCells - the updated cell(s), or false
            * -----------------------------------------------------------------*/
-  let combineInfo: Array<{
-    cell?: number
-    candidates?: Array<number>
-    candidate?: number
-    cells?: Array<number>
-  }> = []
-  let minIndexes = [-1]
+
   function nakedCandidatesStrategy(number: number) {
+    let combineInfo: Array<{
+      cell: number
+      candidates: Array<CellValue>
+    }> = []
+    let minIndexes = [-1]
     //for each type of house..(hor row / vert row / box)
     const boxOfHousesLength = boxOfHouses.length
     for (let i = 0; i < boxOfHousesLength; i++) {
@@ -795,7 +793,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
           //remove all candidates on house, except the on cells matched in pattern
           const cellsUpdated = removeCandidatesFromMultipleCells(
             cellsEffected,
-            combinedCandidates as number[],
+            combinedCandidates,
           )
 
           //if it does remove candidates, we're succeeded!
@@ -807,7 +805,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
             //return cellsWithCandidates.concat(cellsUpdated);
 
             //return cells we actually update, duplicates removed
-            return uniqueArray(cellsUpdated) as number[]
+            return uniqueArray(cellsUpdated)
           }
         }
       }
@@ -857,16 +855,22 @@ export function createSudokuInstance(options: Options = defaultOptions) {
            * -- returns effectedCells - the updated cell(s), or false
            * -----------------------------------------------------------------*/
   function hiddenLockedCandidates(number: number) {
+    let combineInfo: Array<{
+      candidate: number
+      cells: Array<number>
+    }> = []
+    let minIndexes = [-1]
     function checkLockedCandidates(
       house: House,
       startIndex: number,
-    ): ReturnType<StrategyFn> {
+    ): number[] | boolean {
       //log("startIndex: "+startIndex);
       for (
         let i = Math.max(startIndex, minIndexes[startIndex]);
         i <= BOARD_SIZE - number + startIndex;
         i++
       ) {
+        //log(i);
         //never check this cell again, in this loop
         minIndexes[startIndex] = i + 1
         //or in a this loop deeper down in recursions
@@ -886,9 +890,9 @@ export function createSudokuInstance(options: Options = defaultOptions) {
         if (combineInfo.length > 0) {
           const temp = possibleCells.slice()
           for (let a = 0; a < combineInfo.length; a++) {
-            const cells = combineInfo[a].cells || []
+            const cells = combineInfo[a].cells
             for (let b = 0; b < cells.length; b++) {
-              if (!contains(temp, cells[b])) temp.push(cells[b] as number)
+              if (!contains(temp, cells[b])) temp.push(cells[b])
             }
           }
           if (temp.length > number) {
@@ -897,14 +901,14 @@ export function createSudokuInstance(options: Options = defaultOptions) {
           }
         }
 
-        combineInfo.push({candidate, cells: possibleCells})
+        combineInfo.push({candidate: candidate, cells: possibleCells})
 
         if (startIndex < number - 1) {
           //still need to go deeper into combo
-          const result = checkLockedCandidates(house, startIndex + 1)
+          const r = checkLockedCandidates(house, startIndex + 1)
           //when we come back, check if that's because we found answer.
           //if so, return with it, otherwise, keep looking
-          if (result !== false) return result
+          if (r !== false) return r
         }
         //check if we match our pattern
         //if we have managed to combine n-1 candidates,
@@ -913,17 +917,13 @@ export function createSudokuInstance(options: Options = defaultOptions) {
         if (combineInfo.length === number) {
           //now we need to check whether this eliminates any candidates
 
-          const combinedCandidates: Array<number> = [] //not unique now...
-          let cellsWithCandidates: Array<CellValue> = [] //not unique either..
+          const combinedCandidates = [] //not unique now...
+          let cellsWithCandidates: number[] = [] //not unique either..
           for (let x = 0; x < combineInfo.length; x++) {
-            const candidate = combineInfo[x].candidate
-            if (candidate) {
-              combinedCandidates.push(candidate)
-            }
-            cellsWithCandidates = [
-              ...cellsWithCandidates,
-              ...(combineInfo[x].cells || []),
-            ]
+            combinedCandidates.push(combineInfo[x].candidate)
+            cellsWithCandidates = cellsWithCandidates.concat(
+              combineInfo[x].cells,
+            )
           }
 
           const candidatesToRemove = []
@@ -936,11 +936,11 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
           //remove all other candidates from cellsWithCandidates
           const cellsUpdated = removeCandidatesFromMultipleCells(
-            cellsWithCandidates as number[],
+            cellsWithCandidates,
             candidatesToRemove,
           )
 
-          //if it does remove candidates, we're succeeded!
+          //if it does remove candidates, we're succeded!
           if (cellsUpdated.length > 0) {
             //log("hiddenLockedCandidates: ");
             //log(combinedCandidates);
@@ -948,12 +948,12 @@ export function createSudokuInstance(options: Options = defaultOptions) {
             onlyUpdatedCandidates = true
 
             //filter out duplicates
-            return uniqueArray(cellsWithCandidates as number[])
+            return uniqueArray(cellsWithCandidates)
           }
         }
       }
       if (startIndex > 0) {
-        //if we added a value to our combo check, but failed to find pattern, we now need drop that value and go back up in chain and continue to check..
+        //if we added a value to our combo check, but failed to find pattern, we now need drop that value and go back up in chain and continu to check..
         if (combineInfo.length > startIndex - 1) {
           combineInfo.pop()
         }
@@ -969,6 +969,8 @@ export function createSudokuInstance(options: Options = defaultOptions) {
         if (getRemainingNumbers(house).length <= number)
           //can't eliminate any candidates
           continue
+        combineInfo = []
+        minIndexes = [-1]
 
         //checks every combo of n candidates in house, returns pattern, or false
         const result = checkLockedCandidates(house, 0)
@@ -1016,19 +1018,17 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   const applySolvingStrategies = (
     strategyIndex: number,
   ): boolean | undefined => {
-    if (boardFinished) {
+    if (isBoardFinished()) {
       if (!gradingMode) {
-        boardFinishedFn?.(
-          calculateBoardDifficulty(usedStrategies.filter(item => item > 0)),
-        )
+        boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
       }
-      return
+      return false
     }
 
     updateCandidatesBasedOnCellsValue()
     const effectedCells = strategies[strategyIndex].fn()
 
-    if (effectedCells === false) {
+    if (!effectedCells) {
       if (strategies.length > strategyIndex + 1) {
         return applySolvingStrategies(strategyIndex + 1)
       } else {
@@ -1055,10 +1055,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       }
 
       if (isBoardFinished()) {
-        boardFinished = true
-        boardFinishedFn?.(
-          calculateBoardDifficulty(usedStrategies.filter(item => item > 0)),
-        )
+        boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
       }
     }
 
@@ -1088,18 +1085,12 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       canContinue = applySolvingStrategies(startStrategy)
     } while (canContinue)
 
-    const data: AnalyzeData = {
-      error: '',
-      finished: false,
-      usedStrategies: [],
-      level: DIFFICULTY_EASY,
-      score: 0,
-    }
+    const data: AnalyzeData = {}
 
     if (boardError) {
       data.error = 'Board incorrect'
     } else {
-      data.finished = boardFinished
+      data.finished = isBoardFinished()
       data.usedStrategies = strategies
         .map((strategy, i) => {
           if (typeof usedStrategies[i] !== 'undefined') {
@@ -1112,10 +1103,8 @@ export function createSudokuInstance(options: Options = defaultOptions) {
         })
         .filter(Boolean)
 
-      if (boardFinished) {
-        const boardDiff = calculateBoardDifficulty(
-          usedStrategies.filter(item => item > 0),
-        )
+      if (isBoardFinished()) {
+        const boardDiff = calculateBoardDifficulty(usedStrategies)
         data.level = boardDiff.level
         data.score = boardDiff.score
       }
@@ -1129,7 +1118,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   }
   const assignRandomCandidateToCell = (
     cellIndex: number,
-    candidates: Array<number>,
+    candidates: Array<CellValue>,
   ) => {
     const randomIndex = Math.floor(Math.random() * candidates.length)
     const randomCandidate = candidates[randomIndex]
@@ -1148,7 +1137,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       if (!candidate || (invalids && contains(invalids, candidate)))
         return false
       return candidate
-    }) as Array<number>
+    })
     // if cell has 0 candidates - fail to set cell.
     if (candidates.length === 0) {
       return false
@@ -1183,7 +1172,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     }
   }
 
-  const isDifficultyLevelMet = (level: Difficulty): boolean => {
+  const isDifficultyLevelMet = (level?: Difficulty): boolean => {
     switch (level) {
       case DIFFICULTY_EASY:
         return true
@@ -1203,7 +1192,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
         return false
     }
   }
-  const isDifficultyAboveLevel = (level: Difficulty): boolean => {
+  const isDifficultyAboveLevel = (level?: Difficulty): boolean => {
     switch (difficulty) {
       case DIFFICULTY_EASY:
         return true
@@ -1236,7 +1225,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       resetCandidates()
 
       const boardAnalysis = analyzeBoard()
-      console.log(difficulty, boardAnalysis.level)
+      console.log(remainingCells, difficulty, boardAnalysis.level)
       if (
         boardAnalysis.finished !== false &&
         isDifficultyLevelMet(boardAnalysis.level)
