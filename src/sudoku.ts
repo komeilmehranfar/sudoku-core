@@ -25,18 +25,14 @@ import {
 } from './types'
 import {contains, uniqueArray} from './utils'
 
-const defaultOptions: Options = {
-  difficulty: DIFFICULTY_MEDIUM,
-}
-
-export function createSudokuInstance(options: Options = defaultOptions) {
+export function createSudokuInstance(options: Options = {}) {
   const {
     boardErrorFn,
     boardUpdatedFn,
     boardFinishedFn,
     initBoardData,
-    difficulty,
-  } = {...defaultOptions, ...options}
+    difficulty = DIFFICULTY_MEDIUM,
+  } = options
 
   let solveMode: typeof SOLVE_MODE_STEP | typeof SOLVE_MODE_ALL =
     SOLVE_MODE_STEP
@@ -64,6 +60,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       fn: solveBySingleCandidateCellStrategy,
       score: 9,
       solveType: FILL_CELL,
+      prepareFn: updateCandidatesBasedOnCellsValue,
     },
     {
       title: 'Single Candidate Value Strategy',
@@ -139,24 +136,27 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   const calculateBoardDifficulty = (
     usedStrategies: Array<number>,
   ): {level: Difficulty; score: number} => {
-    const totalScore = usedStrategies.reduce(
+    const validUsedStrategies = usedStrategies.filter(Boolean)
+    const totalScore = validUsedStrategies.reduce(
       (accumulatedScore, frequency, i) => {
-        if (!frequency) return accumulatedScore //undefined or 0, won't effect score
         const strategy = strategies[i]
         return accumulatedScore + frequency * strategy.score
       },
       0,
     )
-
     let level: Difficulty =
-      usedStrategies.length < 3
+      validUsedStrategies.length < 3
         ? DIFFICULTY_EASY
-        : usedStrategies.length < 4
+        : validUsedStrategies.length < 4
         ? DIFFICULTY_MEDIUM
         : DIFFICULTY_HARD
 
     if (totalScore > 750) level = DIFFICULTY_EXPERT
-
+    // console.log({
+    //   level,
+    //   score: totalScore,
+    //   validUsedStrategies,
+    // })
     return {
       level,
       score: totalScore,
@@ -519,8 +519,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
    * -----------------------------------------------------------------*/
   function solveBySingleCandidateCellStrategy(): ReturnType<StrategyFn> {
     //before we start with candidate strategies, we need to update candidates from last round:
-
-    //for each cell
 
     for (let i = 0; i < board.length; i++) {
       const cell = board[i]
@@ -1116,68 +1114,75 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     }
   }
 
-  const isDifficultyLevelMet = (level?: Difficulty): boolean => {
-    switch (level) {
-      case DIFFICULTY_EASY:
-        return true
-      case DIFFICULTY_MEDIUM:
-        return difficulty !== DIFFICULTY_EASY
-      case DIFFICULTY_HARD:
-        return (
-          difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
-        )
-      case DIFFICULTY_EXPERT:
-        return (
-          difficulty !== DIFFICULTY_EASY &&
-          difficulty !== DIFFICULTY_MEDIUM &&
-          difficulty !== DIFFICULTY_HARD
-        )
-      default:
-        return false
-    }
+  const easyEnough = (
+    difficulty: Difficulty,
+    currentDifficulty: Difficulty,
+  ): boolean => {
+    if (currentDifficulty === DIFFICULTY_EASY) return true
+    if (currentDifficulty === DIFFICULTY_MEDIUM)
+      return difficulty !== DIFFICULTY_EASY
+    if (currentDifficulty === DIFFICULTY_HARD)
+      return difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
+    if (currentDifficulty === DIFFICULTY_EXPERT)
+      return (
+        difficulty !== DIFFICULTY_EASY &&
+        difficulty !== DIFFICULTY_MEDIUM &&
+        difficulty !== DIFFICULTY_HARD
+      )
+
+    return false
   }
-  const isDifficultyAboveLevel = (level?: Difficulty): boolean => {
-    switch (difficulty) {
-      case DIFFICULTY_EASY:
-        return true
-      case DIFFICULTY_MEDIUM:
-        return level !== DIFFICULTY_EASY
-      case DIFFICULTY_HARD:
-        return level !== DIFFICULTY_EASY && level !== DIFFICULTY_MEDIUM
-      case DIFFICULTY_EXPERT:
-        return (
-          level !== DIFFICULTY_EASY &&
-          level !== DIFFICULTY_MEDIUM &&
-          level !== DIFFICULTY_HARD
-        )
-      default:
-        return false
-    }
+  const isHardEnough = (
+    difficulty: Difficulty,
+    currentDifficulty: Difficulty,
+  ): boolean => {
+    if (difficulty === DIFFICULTY_EASY) return true
+    if (difficulty === DIFFICULTY_MEDIUM)
+      return currentDifficulty !== DIFFICULTY_EASY
+    if (difficulty === DIFFICULTY_HARD)
+      return (
+        currentDifficulty !== DIFFICULTY_EASY &&
+        currentDifficulty !== DIFFICULTY_MEDIUM
+      )
+    if (difficulty === DIFFICULTY_EXPERT)
+      return (
+        currentDifficulty !== DIFFICULTY_EASY &&
+        currentDifficulty !== DIFFICULTY_MEDIUM &&
+        currentDifficulty !== DIFFICULTY_HARD
+      )
+
+    return false
   }
 
   const prepareGameBoard = () => {
     const cells = Array.from({length: BOARD_SIZE * BOARD_SIZE}, (_, i) => i)
     let remainingCells = getRemainingCellsBasedOnDifficulty()
-
-    while (cells.length > 0 && remainingCells > 0) {
+    while (remainingCells > 0) {
       const randIndex = Math.round(Math.random() * (cells.length - 1))
-      const cellValue = board[randIndex].value
+      const [cellIndex] = cells.splice(randIndex, 1)
+      const cellValue = board[cellIndex].value
 
       // Remove value from this cell
-      setBoardCell(randIndex, null)
+      setBoardCell(cellIndex, null)
       // Reset candidates, only in model.
       resetCandidates()
 
       const boardAnalysis = analyzeBoard()
-      // console.log(remainingCells, difficulty, boardAnalysis.level)
+      // console.log(
+      //   board.map(cell => cell.value).filter(Boolean).length,
+      //   remainingCells,
+      //   boardAnalysis.level,
+      //   boardAnalysis.finished,
+      // )
       if (
-        boardAnalysis.finished !== false &&
-        isDifficultyLevelMet(boardAnalysis.level)
+        boardAnalysis.finished &&
+        boardAnalysis.level &&
+        easyEnough(difficulty, boardAnalysis.level)
       ) {
         remainingCells--
       } else {
         // Reset - don't dig this cell
-        setBoardCell(randIndex, cellValue)
+        setBoardCell(cellIndex, cellValue)
       }
     }
   }
@@ -1207,8 +1212,11 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     while (boardTooEasy) {
       prepareGameBoard()
       const data = analyzeBoard()
-      if (isDifficultyAboveLevel(data.level)) boardTooEasy = false
-      else board = boardAnswer
+      if (data.level && isHardEnough(difficulty, data.level)) {
+        boardTooEasy = false
+      } else {
+        board = boardAnswer
+      }
     }
     solveMode = SOLVE_MODE_STEP
     updateCandidatesBasedOnCellsValue()
@@ -1251,7 +1259,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   const getBoard = () => board.map(cell => cell.value)
 
-  console.log(analyzeBoard().level, analyzeBoard().score, getBoard())
+  // console.log(analyzeBoard().level, getBoard().filter(Boolean).length)
 
   return {
     solveAll,
