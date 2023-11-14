@@ -200,18 +200,18 @@ import {createSudokuInstance} from './sudoku' // Import the createSudokuInstance
 //   })
 // })
 
-// for (let index = 0; index < 20; index++) {
-it('should generate a valid easy difficulty board', () => {
-  //Arrange
-  const sudoku = createSudokuInstance({
-    difficulty: 'expert',
-    // boardErrorFn: console.error,
+for (let index = 0; index < 100; index++) {
+  it('should generate a valid easy difficulty board', () => {
+    //Arrange
+    const sudoku = createSudokuInstance({
+      difficulty: 'expert',
+      // boardErrorFn: console.error,
+    })
+
+    //Act
+    const analyze = sudoku.analyzeBoard()
+
+    // Assert
+    expect(analyze.level).toBe('expert')
   })
-
-  //Act
-  const analyze = sudoku.analyzeBoard()
-
-  // Assert
-  expect(analyze.level).toBe('expert')
-})
-// }
+}

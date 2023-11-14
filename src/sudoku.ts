@@ -1157,7 +1157,7 @@ export function createSudokuInstance(options: Options = {}) {
   const prepareGameBoard = () => {
     const cells = Array.from({length: BOARD_SIZE * BOARD_SIZE}, (_, i) => i)
     let remainingCells = getRemainingCellsBasedOnDifficulty()
-    while (remainingCells > 0) {
+    while (remainingCells > 0 && cells.length > 0) {
       const randIndex = Math.round(Math.random() * (cells.length - 1))
       const [cellIndex] = cells.splice(randIndex, 1)
       const cellValue = board[cellIndex].value
@@ -1168,12 +1168,7 @@ export function createSudokuInstance(options: Options = {}) {
       resetCandidates()
 
       const boardAnalysis = analyzeBoard()
-      // console.log(
-      //   board.map(cell => cell.value).filter(Boolean).length,
-      //   remainingCells,
-      //   boardAnalysis.level,
-      //   boardAnalysis.finished,
-      // )
+      // console.log(cells)
       if (
         boardAnalysis.finished &&
         boardAnalysis.level &&
