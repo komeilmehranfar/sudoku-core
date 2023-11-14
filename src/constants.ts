@@ -10,3 +10,6 @@ export const DIFFICULTY_EXPERT = 'expert'
 
 export const SOLVE_MODE_STEP = 'step'
 export const SOLVE_MODE_ALL = 'all'
+
+export const REMOVE_CANDIDATES = 'REMOVE_CANDIDATES'
+export const FILL_CELL = 'FILL_CELL'

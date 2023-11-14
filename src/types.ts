@@ -3,6 +3,8 @@ import {
   DIFFICULTY_HARD,
   DIFFICULTY_MEDIUM,
   DIFFICULTY_EXPERT,
+  REMOVE_CANDIDATES,
+  FILL_CELL,
 } from './constants'
 
 export type PublicBoard = Array<number | null>
@@ -22,13 +24,16 @@ export type CellValue = number | null
 export type Cell = {
   value: CellValue
   candidates: Array<CellValue>
+  invalidCandidates?: Array<CellValue>
 }
 export type InternalBoardType = Array<Cell>
-export type StrategyFn = () => boolean | Array<number> | number
+export type StrategyFn = () => boolean | Array<number> | -1
 export interface Strategy {
   title: string
   score: number
   fn: StrategyFn
+  solveType: SolveType
+  prepareFn?: () => void
 }
 
 export interface Options {
@@ -61,3 +66,5 @@ export type AnalyzeData = {
   level?: Difficulty
   score?: number
 }
+
+export type SolveType = typeof REMOVE_CANDIDATES | typeof FILL_CELL

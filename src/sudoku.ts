@@ -8,6 +8,8 @@ import {
   BOARD_SIZE,
   CANDIDATES,
   NULL_CANDIDATE_LIST,
+  FILL_CELL,
+  REMOVE_CANDIDATES,
 } from './constants'
 import {
   Difficulty,
@@ -40,82 +42,86 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     SOLVE_MODE_STEP
   let board: InternalBoardType = []
 
-  let boardError = false
-  let onlyUpdatedCandidates = false
-
   //solving without updating UI
   let gradingMode = false
 
   //silence board unsolvable errors
-  let generatingMode = false
 
   //used by the generateBoard function
-  let invalidCandidates: CellValue[][] = []
 
   /*
     the score reflects how much increased difficulty the board gets by having the pattern rather than an already solved cell
     */
   const strategies: Array<Strategy> = [
     {
-      title: 'Visual Single Candidate Strategy',
-      fn: solveByVisualSingleCandidateStrategy,
+      title: 'Single Remaining Cell Strategy',
+      fn: solveBySingleRemainingCellStrategy,
       score: 0.1,
+      solveType: FILL_CELL,
     },
     {
-      title: 'Single Candidate Strategy',
-      fn: solveBySingleCandidateStrategy,
+      title: 'Single Candidate Cell Strategy',
+      fn: solveBySingleCandidateCellStrategy,
       score: 9,
+      solveType: FILL_CELL,
     },
     {
-      title: 'Visual Elimination Strategy',
-      fn: solveByVisualCandidatesEliminationStrategy,
+      title: 'Single Candidate Value Strategy',
+      fn: solveBySingleCandidateValueStrategy,
       score: 8,
+      solveType: REMOVE_CANDIDATES,
+      prepareFn: updateCandidatesBasedOnCellsValue,
     },
-    {title: 'Naked Pair Strategy', fn: solveByNakedPairStrategy, score: 50},
+    {
+      title: 'Naked Pair Strategy',
+      fn: solveByNakedPairStrategy,
+      score: 50,
+      solveType: REMOVE_CANDIDATES,
+    },
     {
       title: 'Pointing Elimination Strategy',
-      fn: pointingElimination,
+      fn: solveByPointingEliminationStrategy,
       score: 80,
+      solveType: REMOVE_CANDIDATES,
     },
     //harder for human to spot
-    {title: 'Hidden Pair Strategy', fn: solveByHiddenPairStrategy, score: 90},
+    {
+      title: 'Hidden Pair Strategy',
+      fn: solveByHiddenPairStrategy,
+      score: 90,
+      solveType: REMOVE_CANDIDATES,
+    },
     {
       title: 'Naked Triplet Strategy',
       fn: solveByNakedTripletStrategy,
       score: 100,
+      solveType: REMOVE_CANDIDATES,
     },
     //never gets used unless above strategies are turned off?
     {
       title: 'Hidden Triplet Strategy',
       fn: solveByHiddenTripletStrategy,
       score: 140,
+      solveType: REMOVE_CANDIDATES,
     },
     //never gets used unless above strategies are turned off?
     {
       title: 'Naked Quadruple Strategy',
       fn: solveByNakedQuadrupleStrategy,
       score: 150,
+      solveType: REMOVE_CANDIDATES,
     },
     //never gets used unless above strategies are turned off?
     {
       title: 'Hidden Quadruple Strategy',
       fn: solveByHiddenQuadrupleStrategy,
       score: 280,
+      solveType: REMOVE_CANDIDATES,
     },
   ]
 
   //nr of times each strategy has been used for solving this board - used to calculate difficulty score
   let usedStrategies: Array<number> = []
-
-  /*board variable gets enhanced into list of objects on init:
-            ,{
-                value: null
-                ,candidates: [
-                    ]
-            }
-        */
-
-  // array of 1-9 by default, generated in initializeBoard
 
   //indexes of cells in each house - generated on the fly based on BOARD_SIZE
   //horizontal. rows
@@ -160,10 +166,9 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   /* isBoardFinished
    * -----------------------------------------------------------------*/
   const isBoardFinished = () => {
-    for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-      if (board[i].value == null) return false
-    }
-    return true
+    return new Array(BOARD_SIZE * BOARD_SIZE)
+      .fill(null)
+      .every((_, i) => board[i].value !== null)
   }
 
   /* generateHouseIndexList
@@ -267,8 +272,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   }
 
   const resetBoardVariables = () => {
-    boardError = false
-    onlyUpdatedCandidates = false
     usedStrategies = []
     gradingMode = false
   }
@@ -361,46 +364,39 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   //Strategies
 
-  /* solveByVisualSingleCandidateStrategy
+  /* solveBySingleRemainingCellStrategy
    * --------------
    * This is the simplest strategy. If there's only one empty cell in a row, column, or box (these are all "houses"), the number that goes into that cell has to be the one number that isn't elsewhere in that house.
    * For instance, if a row has the numbers 1 through 8, then the last cell in that row must be 9.
    * -----------------------------------------------------------------*/
 
-  function solveByVisualSingleCandidateStrategy(): ReturnType<StrategyFn> {
+  function solveBySingleRemainingCellStrategy(): ReturnType<StrategyFn> {
     const houses = boxOfHouses.length
 
     for (let i = 0; i < houses; i++) {
-      let housesCompleted = 0
-
       for (let j = 0; j < BOARD_SIZE; j++) {
-        const singleEmptyCell = findSingleEmptyCellInHouse(i, j)
+        const singleEmptyCell = findSingleEmptyCellInHouse(boxOfHouses[i][j])
 
         if (singleEmptyCell) {
           return fillSingleEmptyCell(singleEmptyCell)
         }
 
-        if (isHouseCompleted(i, j)) {
-          housesCompleted++
-          if (isAllHousesCompleted(housesCompleted)) {
-            if (isBoardFinished()) {
-              boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
-            }
-            return true
-          }
+        if (isBoardFinished()) {
+          boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
+          return true
         }
       }
     }
     return false
   }
 
-  function findSingleEmptyCellInHouse(i: number, j: number) {
+  function findSingleEmptyCellInHouse(house: House) {
     const emptyCells = []
 
     for (let k = 0; k < BOARD_SIZE; k++) {
-      const boardIndex = boxOfHouses[i][j][k]
+      const boardIndex = house[k]
       if (board[boardIndex].value == null) {
-        emptyCells.push({house: boxOfHouses[i][j], cellIndex: boardIndex})
+        emptyCells.push({house: house, cellIndex: boardIndex})
         if (emptyCells.length > 1) {
           break
         }
@@ -418,23 +414,14 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     const value = getRemainingNumbers(emptyCell.house)
 
     if (value.length > 1) {
-      boardError = true
-      return false //error
+      boardErrorFn?.({message: 'Board Incorrect'})
+      return -1
     }
 
     setBoardCell(emptyCell.cellIndex, value[0]) //does not update UI
     return [emptyCell.cellIndex]
   }
 
-  function isHouseCompleted(i: number, j: number) {
-    const house = boxOfHouses[i][j]
-    const remainingNumbers = getRemainingNumbers(house)
-    return remainingNumbers.length === 0
-  }
-
-  function isAllHousesCompleted(housesCompleted: number) {
-    return housesCompleted === BOARD_SIZE
-  }
   /* updateCandidatesBasedOnCellsValue
   * --------------
   * ALWAYS returns false
@@ -478,13 +465,13 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     }))
   }
 
-  /* solveByVisualCandidatesEliminationStrategy
+  /* solveBySingleCandidateValueStrategy
    * --------------
    * This strategy looks at houses where a number only appears as a candidate in one cell.
    * If every other cell in a house already contains a number or can't possibly contain a certain number, then that number must go in the one cell where it's still a candidate.
    * For example, if in a row the number 3 can only be placed in the third cell, then it must go there.
    * -----------------------------------------------------------------*/
-  function solveByVisualCandidatesEliminationStrategy(): ReturnType<StrategyFn> {
+  function solveBySingleCandidateValueStrategy(): ReturnType<StrategyFn> {
     //log("visualElimination");
     //for each type of house..(hor row / vert row / box)
     const boxOfHousesLength = boxOfHouses.length
@@ -517,7 +504,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
             setBoardCell(cellIndex, digit) //does not update UI
 
-            onlyUpdatedCandidates = false
             return [cellIndex] //one step at the time
           }
         }
@@ -526,12 +512,12 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     return false
   }
 
-  /* solveBySingleCandidateStrategy
+  /* solveBySingleCandidateCellStrategy
    * --------------
    * Looks for cells with only one candidate
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function solveBySingleCandidateStrategy(): ReturnType<StrategyFn> {
+  function solveBySingleCandidateCellStrategy(): ReturnType<StrategyFn> {
     //before we start with candidate strategies, we need to update candidates from last round:
 
     //for each cell
@@ -553,22 +539,17 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
         setBoardCell(i, digit) //does not update UI
 
-        onlyUpdatedCandidates = false
         return [i] //one step at the time
       }
     }
     return false
   }
 
-  /* pointingElimination
-           * --------------
-           * if candidates of a type (digit) in a box only appear on one row, all other
-           * same type candidates can be removed from that row
-           ------------OR--------------
-           * same as above, but row instead of box, and vice versa.
-           * -- returns effectedCells - the updated cell(s), or false
-           * -----------------------------------------------------------------*/
-  function pointingElimination() {
+  /* solveByPointingEliminationStrategy
+   * --------------
+   * This strategy is used when a certain number appears only in a single row or column within a box. That means this number can be eliminated from the other cells in that row or column that are not in this box. For example, if in a box the number 4 only appears in the cells of the first row, then the number 4 can be removed from the rest of the cells in the first row that are not in this box.
+   * -----------------------------------------------------------------*/
+  function solveByPointingEliminationStrategy() {
     //for each type of house..(hor row / vert row / box)
     const boxOfHousesLength = boxOfHouses.length
     for (let a = 0; a < boxOfHousesLength; a++) {
@@ -659,8 +640,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
             if (cellsUpdated.length > 0) {
               // log("pointing: digit "+digit+", from houseType: "+houseType);
 
-              onlyUpdatedCandidates = true
-
               //return cellsUpdated.concat(cellsWithCandidate);
               //only return cells where we actually update candidates
               return cellsUpdated
@@ -673,13 +652,8 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   }
 
   /* nakedCandidatesStrategy
-           * --------------
-           * looks for n nr of cells in house, which together has exactly n unique candidates.
-              this means these candidates will go into these cells, and can be removed elsewhere in house.
-           *
-           * -- returns effectedCells - the updated cell(s), or false
-           * -----------------------------------------------------------------*/
-
+   * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
+   * -----------------------------------------------------------------*/
   function nakedCandidatesStrategy(number: number) {
     let combineInfo: Array<{
       cell: number
@@ -801,7 +775,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
             //log("nakedCandidates: ");
             //log(combinedCandidates);
 
-            onlyUpdatedCandidates = true
             //return cellsWithCandidates.concat(cellsUpdated);
 
             //return cells we actually update, duplicates removed
@@ -822,8 +795,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   /* solveByNakedPairStrategy
    * --------------
-   * see nakedCandidateElimination for explanation
-   * -- returns effectedCells - the updated cell(s), or false
+   * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
    * -----------------------------------------------------------------*/
   function solveByNakedPairStrategy() {
     return nakedCandidatesStrategy(2)
@@ -831,8 +803,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   /* solveByNakedTripletStrategy
    * --------------
-   * see nakedCandidateElimination for explanation
-   * -- returns effectedCells - the updated cell(s), or false
+   * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
    * -----------------------------------------------------------------*/
   function solveByNakedTripletStrategy() {
     return nakedCandidatesStrategy(3)
@@ -840,20 +811,15 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   /* solveByNakedQuadrupleStrategy
    * --------------
-   * see nakedCandidateElimination for explanation
-   * -- returns effectedCells - the updated cell(s), or false
+   * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
    * -----------------------------------------------------------------*/
   function solveByNakedQuadrupleStrategy() {
     return nakedCandidatesStrategy(4)
   }
 
   /* hiddenLockedCandidates
-           * --------------
-           * looks for n nr of cells in house, which together has exactly n unique candidates.
-              this means these candidates will go into these cells, and can be removed elsewhere in house.
-           *
-           * -- returns effectedCells - the updated cell(s), or false
-           * -----------------------------------------------------------------*/
+   * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
+   * -----------------------------------------------------------------*/
   function hiddenLockedCandidates(number: number) {
     let combineInfo: Array<{
       candidate: number
@@ -945,8 +911,6 @@ export function createSudokuInstance(options: Options = defaultOptions) {
             //log("hiddenLockedCandidates: ");
             //log(combinedCandidates);
 
-            onlyUpdatedCandidates = true
-
             //filter out duplicates
             return uniqueArray(cellsWithCandidates)
           }
@@ -982,8 +946,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   /* solveByHiddenPairStrategy
    * --------------
-   * see hiddenLockedCandidates for explanation
-   * -- returns effectedCells - the updated cell(s), or false
+   * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
    * -----------------------------------------------------------------*/
   function solveByHiddenPairStrategy() {
     return hiddenLockedCandidates(2)
@@ -991,8 +954,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   /* solveByHiddenTripletStrategy
    * --------------
-   * see hiddenLockedCandidates for explanation
-   * -- returns effectedCells - the updated cell(s), or false
+   * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
    * -----------------------------------------------------------------*/
   function solveByHiddenTripletStrategy() {
     return hiddenLockedCandidates(3)
@@ -1000,8 +962,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
   /* solveByHiddenQuadrupleStrategy
    * --------------
-   * see hiddenLockedCandidates for explanation
-   * -- returns effectedCells - the updated cell(s), or false
+   * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
    * -----------------------------------------------------------------*/
   function solveByHiddenQuadrupleStrategy() {
     return hiddenLockedCandidates(4)
@@ -1025,24 +986,18 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       return false
     }
 
-    updateCandidatesBasedOnCellsValue()
+    strategies[strategyIndex].prepareFn?.()
     const effectedCells = strategies[strategyIndex].fn()
 
-    if (!effectedCells) {
+    if (effectedCells === false) {
       if (strategies.length > strategyIndex + 1) {
         return applySolvingStrategies(strategyIndex + 1)
       } else {
-        if (typeof boardErrorFn === 'function' && !generatingMode) {
-          boardErrorFn({message: 'no more strategies'})
-        }
+        boardErrorFn?.({message: 'No More Strategies To Solve The Board'})
         return false
       }
     }
-
-    if (boardError) {
-      if (typeof boardErrorFn === 'function') {
-        boardErrorFn({message: 'Board incorrect'})
-      }
+    if (effectedCells === -1) {
       return false
     }
 
@@ -1073,25 +1028,20 @@ export function createSudokuInstance(options: Options = defaultOptions) {
    * reports back: error|finished, usedStrategies and difficulty level and score
    * -----------------------------------------------------------------*/
   const analyzeBoard = () => {
-    gradingMode = true
     solveMode = SOLVE_MODE_ALL
 
     const usedStrategiesClone = [...usedStrategies]
     const boardClone = JSON.parse(JSON.stringify(board))
 
-    let canContinue
+    let canContinue: boolean | undefined = true
     do {
-      const startStrategy = onlyUpdatedCandidates ? 2 : 0
+      const startStrategy = 0
       canContinue = applySolvingStrategies(startStrategy)
     } while (canContinue)
 
-    const data: AnalyzeData = {}
-
-    if (boardError) {
-      data.error = 'Board incorrect'
-    } else {
-      data.finished = isBoardFinished()
-      data.usedStrategies = strategies
+    const data: AnalyzeData = {
+      finished: isBoardFinished(),
+      usedStrategies: strategies
         .map((strategy, i) => {
           if (typeof usedStrategies[i] !== 'undefined') {
             return {
@@ -1101,13 +1051,13 @@ export function createSudokuInstance(options: Options = defaultOptions) {
           }
           return null
         })
-        .filter(Boolean)
+        .filter(Boolean),
+    }
 
-      if (isBoardFinished()) {
-        const boardDiff = calculateBoardDifficulty(usedStrategies)
-        data.level = boardDiff.level
-        data.score = boardDiff.score
-      }
+    if (isBoardFinished()) {
+      const boardDiff = calculateBoardDifficulty(usedStrategies)
+      data.level = boardDiff.level
+      data.score = boardDiff.score
     }
 
     resetBoardVariables()
@@ -1116,14 +1066,9 @@ export function createSudokuInstance(options: Options = defaultOptions) {
 
     return data
   }
-  const assignRandomCandidateToCell = (
-    cellIndex: number,
-    candidates: Array<CellValue>,
-  ) => {
+  const getRandomCandidateOfCell = (candidates: Array<CellValue>) => {
     const randomIndex = Math.floor(Math.random() * candidates.length)
-    const randomCandidate = candidates[randomIndex]
-
-    setBoardCell(cellIndex, randomCandidate)
+    return candidates[randomIndex]
   }
 
   const setBoardCellWithRandomCandidate = (cellIndex: number) => {
@@ -1131,44 +1076,43 @@ export function createSudokuInstance(options: Options = defaultOptions) {
     updateCandidatesBasedOnCellsValue()
     // DRAW RANDOM CANDIDATE
     // don't draw already invalidated candidates for cell
-    const invalids = invalidCandidates && invalidCandidates[cellIndex]
+    const invalids = board[cellIndex].invalidCandidates || []
     // TODO: don't use JS filter - not supported enough(?)
-    const candidates = board[cellIndex].candidates.filter(candidate => {
-      if (!candidate || (invalids && contains(invalids, candidate)))
-        return false
-      return candidate
-    })
+    const candidates = board[cellIndex].candidates.filter(
+      candidate => Boolean(candidate) && !invalids.includes(candidate),
+    )
     // if cell has 0 candidates - fail to set cell.
     if (candidates.length === 0) {
       return false
     }
-    assignRandomCandidateToCell(cellIndex, candidates)
-
+    const value = getRandomCandidateOfCell(candidates)
+    setBoardCell(cellIndex, value)
     return true
   }
 
+  const invalidPreviousCandidateAndStartOver = (cellIndex: number) => {
+    const previousIndex = cellIndex - 1
+
+    board[previousIndex].invalidCandidates =
+      board[previousIndex].invalidCandidates || []
+
+    board[previousIndex].invalidCandidates?.push(board[previousIndex].value)
+
+    setBoardCell(previousIndex, null)
+    resetCandidates()
+    board[cellIndex].invalidCandidates = []
+
+    generateBoardAnswerRecursively(previousIndex)
+  }
   const generateBoardAnswerRecursively = (cellIndex: number) => {
     if (cellIndex + 1 > BOARD_SIZE * BOARD_SIZE) {
-      //done
-      invalidCandidates = []
+      board.forEach(cell => (cell.invalidCandidates = []))
       return true
     }
     if (setBoardCellWithRandomCandidate(cellIndex)) {
       generateBoardAnswerRecursively(cellIndex + 1)
     } else {
-      if (cellIndex <= 0) return false
-      const lastIndex = cellIndex - 1
-      invalidCandidates[lastIndex] = invalidCandidates[lastIndex] || []
-      invalidCandidates[lastIndex].push(board[lastIndex].value)
-      // set value back to null
-      setBoardCell(lastIndex, null)
-      // reset candidates, only in model.
-      resetCandidates()
-      // reset invalid candidates for cellIndex
-      invalidCandidates[cellIndex] = []
-      // then try again
-      generateBoardAnswerRecursively(lastIndex)
-      return false
+      invalidPreviousCandidateAndStartOver(cellIndex)
     }
   }
 
@@ -1225,7 +1169,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
       resetCandidates()
 
       const boardAnalysis = analyzeBoard()
-      console.log(remainingCells, difficulty, boardAnalysis.level)
+      // console.log(remainingCells, difficulty, boardAnalysis.level)
       if (
         boardAnalysis.finished !== false &&
         isDifficultyLevelMet(boardAnalysis.level)
@@ -1252,11 +1196,7 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   // generates board puzzle, i.e. the answers for this round
   // requires that a board for BOARD_SIZE has already been initiated
   const generateBoard = () => {
-    generatingMode = true
     solveMode = SOLVE_MODE_ALL
-
-    // the board generated will possibly not be hard enough
-    // (if you asked for "hard", you most likely get "medium")
 
     generateBoardAnswerRecursively(0)
 
@@ -1277,14 +1217,18 @@ export function createSudokuInstance(options: Options = defaultOptions) {
   /*
    * init/API/events
    *-----------*/
-  if (!initBoardData) {
-    initializeBoard()
-    generateBoard()
-  } else {
-    board = convertInitialBoardToSerializedBoard(initBoardData)
-    initializeBoard()
-    updateCandidatesBasedOnCellsValue()
-    analyzeBoard()
+  try {
+    if (!initBoardData) {
+      initializeBoard()
+      generateBoard()
+    } else {
+      board = convertInitialBoardToSerializedBoard(initBoardData)
+      initializeBoard()
+      updateCandidatesBasedOnCellsValue()
+      analyzeBoard()
+    }
+  } catch (e) {
+    boardErrorFn?.({message: e as string})
   }
 
   /**
@@ -1292,20 +1236,22 @@ export function createSudokuInstance(options: Options = defaultOptions) {
    * ----------------- */
   const solveAll = () => {
     solveMode = SOLVE_MODE_ALL
-    let canContinue: ReturnType<typeof applySolvingStrategies> = true
+    let canContinue: boolean | undefined = true
     while (canContinue) {
-      const startStrategy = onlyUpdatedCandidates ? 2 : 0
-      canContinue = applySolvingStrategies(startStrategy)
+      const startStrategyIndex = 0
+      canContinue = applySolvingStrategies(startStrategyIndex)
     }
   }
 
   const solveStep = () => {
     solveMode = SOLVE_MODE_STEP
-    const startStrategy = onlyUpdatedCandidates ? 2 : 0
-    applySolvingStrategies(startStrategy)
+    const startStrategyIndex = 0
+    applySolvingStrategies(startStrategyIndex)
   }
 
   const getBoard = () => board.map(cell => cell.value)
+
+  console.log(analyzeBoard().level, analyzeBoard().score, getBoard())
 
   return {
     solveAll,

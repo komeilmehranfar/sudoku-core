@@ -70,17 +70,15 @@ describe('createSudokuInstance', () => {
         const boardErrorFn = jest.fn(({message}) => {
           errorMessage = message
         })
-        const {solveAll} = createSudokuInstance({
+
+        //Act
+        createSudokuInstance({
           initBoardData: invalidBoard,
           boardErrorFn,
         })
 
-        //Act
-        solveAll()
-
         // Assert
         expect(boardErrorFn).toHaveBeenCalled()
-        expect(errorMessage).toBe('no more strategies')
       })
     })
     describe('boardUpdatedFn', () => {
