@@ -1,4 +1,12 @@
-import {Houses} from './types'
+import {
+  BOARD_SIZE,
+  DIFFICULTY_EASY,
+  DIFFICULTY_EXPERT,
+  DIFFICULTY_HARD,
+  DIFFICULTY_MEDIUM,
+  NULL_CANDIDATE_LIST,
+} from './constants'
+import {CellValue, Difficulty, Houses, InternalBoardType} from './types'
 
 //array contains function
 export const contains = (array: Array<unknown>, object: unknown) => {
@@ -46,4 +54,84 @@ export const generateHouseIndexList = (boardSize: number): Houses[] => {
     groupOfHouses[2].push(box)
   }
   return groupOfHouses
+}
+
+export const isBoardFinished = (board: InternalBoardType): boolean => {
+  return new Array(BOARD_SIZE * BOARD_SIZE)
+    .fill(null)
+    .every((_, i) => board[i].value !== null)
+}
+
+export const isEasyEnough = (
+  difficulty: Difficulty,
+  currentDifficulty: Difficulty,
+): boolean => {
+  switch (currentDifficulty) {
+    case DIFFICULTY_EASY:
+      return true
+    case DIFFICULTY_MEDIUM:
+      return difficulty !== DIFFICULTY_EASY
+    case DIFFICULTY_HARD:
+      return difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
+    case DIFFICULTY_EXPERT:
+      return (
+        difficulty !== DIFFICULTY_EASY &&
+        difficulty !== DIFFICULTY_MEDIUM &&
+        difficulty !== DIFFICULTY_HARD
+      )
+  }
+}
+export const isHardEnough = (
+  difficulty: Difficulty,
+  currentDifficulty: Difficulty,
+): boolean => {
+  switch (difficulty) {
+    case DIFFICULTY_EASY:
+      return true
+    case DIFFICULTY_MEDIUM:
+      return currentDifficulty !== DIFFICULTY_EASY
+    case DIFFICULTY_HARD:
+      return (
+        currentDifficulty !== DIFFICULTY_EASY &&
+        currentDifficulty !== DIFFICULTY_MEDIUM
+      )
+    case DIFFICULTY_EXPERT:
+      return (
+        currentDifficulty !== DIFFICULTY_EASY &&
+        currentDifficulty !== DIFFICULTY_MEDIUM &&
+        currentDifficulty !== DIFFICULTY_HARD
+      )
+  }
+}
+
+export const getRemovalCountBasedOnDifficulty = (difficulty: Difficulty) => {
+  switch (difficulty) {
+    case DIFFICULTY_EASY:
+      return BOARD_SIZE * BOARD_SIZE - 40
+    case DIFFICULTY_MEDIUM:
+      return BOARD_SIZE * BOARD_SIZE - 30
+    default:
+      return BOARD_SIZE * BOARD_SIZE - 17
+  }
+}
+
+/* addValueToCellIndex - does not update UI
+          -----------------------------------------------------------------*/
+export const addValueToCellIndex = (
+  board: InternalBoardType,
+  cellIndex: number,
+  value: CellValue,
+) => {
+  return board.map((cell, index) =>
+    cellIndex === index
+      ? {
+          ...cell,
+          value: value,
+          candidates:
+            value !== null
+              ? NULL_CANDIDATE_LIST.slice()
+              : cell.candidates.slice(),
+        }
+      : {...cell, candidates: cell.candidates.slice()},
+  )
 }

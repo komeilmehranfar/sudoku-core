@@ -21,16 +21,21 @@ import {
   AnalyzeData,
   SolveType,
 } from './types'
-import {contains, generateHouseIndexList, uniqueArray} from './utils'
+import {
+  addValueToCellIndex,
+  contains,
+  generateHouseIndexList,
+  getRemovalCountBasedOnDifficulty,
+  isBoardFinished,
+  isEasyEnough,
+  isHardEnough,
+  uniqueArray,
+} from './utils'
 
 const GROUP_OF_HOUSES = generateHouseIndexList(BOARD_SIZE)
 /* isBoardFinished
  * -----------------------------------------------------------------*/
-const isBoardFinished = (board: InternalBoardType) => {
-  return new Array(BOARD_SIZE * BOARD_SIZE)
-    .fill(null)
-    .every((_, i) => board[i].value !== null)
-}
+
 export function createSudokuInstance(options: Options = {}) {
   const {
     boardErrorFn,
@@ -226,15 +231,6 @@ export function createSudokuInstance(options: Options = {}) {
     }))
   }
 
-  /* setBoardCell - does not update UI
-          -----------------------------------------------------------------*/
-  const setBoardCell = (cellIndex: number, value: CellValue) => {
-    const boardCell = board[cellIndex]
-    //update value
-    boardCell.value = value
-    if (value !== null) boardCell.candidates = NULL_CANDIDATE_LIST.slice()
-  }
-
   /* indexInHouse
    * --------------
    *  returns index (0-9) for digit in house, false if not in house
@@ -356,7 +352,7 @@ export function createSudokuInstance(options: Options = {}) {
       return -1
     }
 
-    setBoardCell(emptyCell.cellIndex, value[0]) //does not update UI
+    board = addValueToCellIndex(board, emptyCell.cellIndex, value[0]) //does not update UI
     return [emptyCell.cellIndex]
   }
 
@@ -440,7 +436,7 @@ export function createSudokuInstance(options: Options = {}) {
 
             //log("only slot where "+digit+" appears in house. ");
 
-            setBoardCell(cellIndex, digit) //does not update UI
+            board = addValueToCellIndex(board, cellIndex, digit) //does not update UI
 
             return [cellIndex] //one step at the time
           }
@@ -473,7 +469,7 @@ export function createSudokuInstance(options: Options = {}) {
 
         //log("only one candidate in cell: "+digit+" in house. ");
 
-        setBoardCell(i, digit) //does not update UI
+        board = addValueToCellIndex(board, i, digit) //does not update UI
 
         return [i] //one step at the time
       }
@@ -1018,33 +1014,27 @@ export function createSudokuInstance(options: Options = {}) {
   }
 
   const setBoardCellWithRandomCandidate = (cellIndex: number) => {
-    // CHECK still valid
     updateCandidatesBasedOnCellsValue()
-    // DRAW RANDOM CANDIDATE
-    // don't draw already invalidated candidates for cell
     const invalids = board[cellIndex].invalidCandidates || []
-    // TODO: don't use JS filter - not supported enough(?)
     const candidates = board[cellIndex].candidates.filter(
       candidate => Boolean(candidate) && !invalids.includes(candidate),
     )
-    // if cell has 0 candidates - fail to set cell.
     if (candidates.length === 0) {
       return false
     }
     const value = getRandomCandidateOfCell(candidates)
-    setBoardCell(cellIndex, value)
+    board = addValueToCellIndex(board, cellIndex, value)
     return true
   }
 
   const invalidPreviousCandidateAndStartOver = (cellIndex: number) => {
     const previousIndex = cellIndex - 1
-
     board[previousIndex].invalidCandidates =
       board[previousIndex].invalidCandidates || []
 
     board[previousIndex].invalidCandidates?.push(board[previousIndex].value)
 
-    setBoardCell(previousIndex, null)
+    board = addValueToCellIndex(board, previousIndex, null)
     resetCandidates()
     board[cellIndex].invalidCandidates = []
 
@@ -1062,60 +1052,16 @@ export function createSudokuInstance(options: Options = {}) {
     }
   }
 
-  const isEasyEnough = (
-    difficulty: Difficulty,
-    currentDifficulty: Difficulty,
-  ): boolean => {
-    switch (currentDifficulty) {
-      case DIFFICULTY_EASY:
-        return true
-      case DIFFICULTY_MEDIUM:
-        return difficulty !== DIFFICULTY_EASY
-      case DIFFICULTY_HARD:
-        return (
-          difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
-        )
-      case DIFFICULTY_EXPERT:
-        return (
-          difficulty !== DIFFICULTY_EASY &&
-          difficulty !== DIFFICULTY_MEDIUM &&
-          difficulty !== DIFFICULTY_HARD
-        )
-    }
-  }
-  const isHardEnough = (
-    difficulty: Difficulty,
-    currentDifficulty: Difficulty,
-  ): boolean => {
-    switch (difficulty) {
-      case DIFFICULTY_EASY:
-        return true
-      case DIFFICULTY_MEDIUM:
-        return currentDifficulty !== DIFFICULTY_EASY
-      case DIFFICULTY_HARD:
-        return (
-          currentDifficulty !== DIFFICULTY_EASY &&
-          currentDifficulty !== DIFFICULTY_MEDIUM
-        )
-      case DIFFICULTY_EXPERT:
-        return (
-          currentDifficulty !== DIFFICULTY_EASY &&
-          currentDifficulty !== DIFFICULTY_MEDIUM &&
-          currentDifficulty !== DIFFICULTY_HARD
-        )
-    }
-  }
-
   const prepareGameBoard = () => {
     const cells = Array.from({length: BOARD_SIZE * BOARD_SIZE}, (_, i) => i)
-    let remainingCells = getRemainingCellsBasedOnDifficulty()
-    while (remainingCells > 0 && cells.length > 0) {
+    let removalCount = getRemovalCountBasedOnDifficulty(difficulty)
+    while (removalCount > 0 && cells.length > 0) {
       const randIndex = Math.round(Math.random() * (cells.length - 1))
       const [cellIndex] = cells.splice(randIndex, 1)
       const cellValue = board[cellIndex].value
 
       // Remove value from this cell
-      setBoardCell(cellIndex, null)
+      board = addValueToCellIndex(board, cellIndex, null)
       // Reset candidates, only in model.
       resetCandidates()
 
@@ -1126,22 +1072,11 @@ export function createSudokuInstance(options: Options = {}) {
         boardAnalysis.level &&
         isEasyEnough(difficulty, boardAnalysis.level)
       ) {
-        remainingCells--
+        removalCount--
       } else {
         // Reset - don't dig this cell
-        setBoardCell(cellIndex, cellValue)
+        board = addValueToCellIndex(board, cellIndex, cellValue)
       }
-    }
-  }
-
-  const getRemainingCellsBasedOnDifficulty = () => {
-    switch (difficulty) {
-      case DIFFICULTY_EASY:
-        return BOARD_SIZE * BOARD_SIZE - 40
-      case DIFFICULTY_MEDIUM:
-        return BOARD_SIZE * BOARD_SIZE - 30
-      default:
-        return BOARD_SIZE * BOARD_SIZE - 17
     }
   }
 
@@ -1202,8 +1137,6 @@ export function createSudokuInstance(options: Options = {}) {
   }
 
   const getBoard = () => board.map(cell => cell.value)
-
-  // console.log(analyzeBoard().level, getBoard().filter(Boolean).length)
 
   return {
     solveAll,
