@@ -6,7 +6,13 @@ import {
   DIFFICULTY_MEDIUM,
   NULL_CANDIDATE_LIST,
 } from './constants'
-import {CellValue, Difficulty, Houses, InternalBoardType} from './types'
+import {
+  CellValue,
+  Difficulty,
+  Houses,
+  InternalBoardType,
+  Strategy,
+} from './types'
 
 //array contains function
 export const contains = (array: Array<unknown>, object: unknown) => {
@@ -121,7 +127,7 @@ export const addValueToCellIndex = (
   board: InternalBoardType,
   cellIndex: number,
   value: CellValue,
-) => {
+): InternalBoardType => {
   return board.map((cell, index) =>
     cellIndex === index
       ? {
@@ -134,4 +140,36 @@ export const addValueToCellIndex = (
         }
       : {...cell, candidates: cell.candidates.slice()},
   )
+}
+
+/* calculateBoardDifficulty
+ * --------------
+ *  TYPE: solely based on strategies required to solve board (i.e. single count per strategy)
+ *  SCORE: distinguish between boards of same difficulty.. based on point system. Needs work.
+ * -----------------------------------------------------------------*/
+export const calculateBoardDifficulty = (
+  usedStrategies: Array<number>,
+  strategies: Array<Strategy>,
+): {level: Difficulty; score: number} => {
+  const validUsedStrategies = usedStrategies.filter(Boolean)
+  const totalScore = validUsedStrategies.reduce(
+    (accumulatedScore, frequency, i) => {
+      const strategy = strategies[i]
+      return accumulatedScore + frequency * strategy.score
+    },
+    0,
+  )
+  let level: Difficulty =
+    validUsedStrategies.length < 3
+      ? DIFFICULTY_EASY
+      : validUsedStrategies.length < 4
+      ? DIFFICULTY_MEDIUM
+      : DIFFICULTY_HARD
+
+  if (totalScore > 750) level = DIFFICULTY_EXPERT
+
+  return {
+    level,
+    score: totalScore,
+  }
 }

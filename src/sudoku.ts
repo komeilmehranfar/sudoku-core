@@ -1,8 +1,5 @@
 import {
-  DIFFICULTY_EASY,
   DIFFICULTY_MEDIUM,
-  DIFFICULTY_HARD,
-  DIFFICULTY_EXPERT,
   SOLVE_MODE_STEP,
   SOLVE_MODE_ALL,
   BOARD_SIZE,
@@ -10,7 +7,6 @@ import {
   NULL_CANDIDATE_LIST,
 } from './constants'
 import {
-  Difficulty,
   ApiBoardType,
   CellValue,
   InternalBoardType,
@@ -23,6 +19,7 @@ import {
 } from './types'
 import {
   addValueToCellIndex,
+  calculateBoardDifficulty,
   contains,
   generateHouseIndexList,
   getRemovalCountBasedOnDifficulty,
@@ -120,41 +117,6 @@ export function createSudokuInstance(options: Options = {}) {
 
   // all rows, columns and boxes
 
-  /* calculateBoardDifficulty
-   * --------------
-   *  TYPE: solely based on strategies required to solve board (i.e. single count per strategy)
-   *  SCORE: distinguish between boards of same difficulty.. based on point system. Needs work.
-   * -----------------------------------------------------------------*/
-  const calculateBoardDifficulty = (
-    usedStrategies: Array<number>,
-  ): {level: Difficulty; score: number} => {
-    const validUsedStrategies = usedStrategies.filter(Boolean)
-    const totalScore = validUsedStrategies.reduce(
-      (accumulatedScore, frequency, i) => {
-        const strategy = strategies[i]
-        return accumulatedScore + frequency * strategy.score
-      },
-      0,
-    )
-    let level: Difficulty =
-      validUsedStrategies.length < 3
-        ? DIFFICULTY_EASY
-        : validUsedStrategies.length < 4
-        ? DIFFICULTY_MEDIUM
-        : DIFFICULTY_HARD
-
-    if (totalScore > 750) level = DIFFICULTY_EXPERT
-    // console.log({
-    //   level,
-    //   score: totalScore,
-    //   validUsedStrategies,
-    // })
-    return {
-      level,
-      score: totalScore,
-    }
-  }
-
   /* initializeBoard
    * --------------
    *  inits board, variables.
@@ -178,18 +140,6 @@ export function createSudokuInstance(options: Options = {}) {
         }
       })
     }
-  }
-
-  /* removeCandidatesFromCell
-          -----------------------------------------------------------------*/
-  const removeCandidatesFromCell = (
-    cellIndex: number,
-    candidatesToRemove: Array<CellValue>,
-  ) => {
-    const cell = board[cellIndex]
-    cell.candidates = cell.candidates.filter(
-      candidate => !candidatesToRemove.includes(candidate),
-    )
   }
 
   /* removeCandidatesFromMultipleCells
@@ -316,7 +266,9 @@ export function createSudokuInstance(options: Options = {}) {
         }
 
         if (isBoardFinished(board)) {
-          boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
+          boardFinishedFn?.(
+            calculateBoardDifficulty(usedStrategies, strategies),
+          )
           return true
         }
       }
@@ -365,27 +317,19 @@ export function createSudokuInstance(options: Options = {}) {
   function updateCandidatesBasedOnCellsValue() {
     const groupOfHousesLength = GROUP_OF_HOUSES.length
     for (let i = 0; i < groupOfHousesLength; i++) {
-      processEachHouseType(i)
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        const house = GROUP_OF_HOUSES[i][j]
+        const candidatesToRemove = getUsedNumbers(house)
+        for (let k = 0; k < BOARD_SIZE; k++) {
+          const cellIndex = house[k]
+          const cell = board[cellIndex]
+          cell.candidates = cell.candidates.filter(
+            candidate => !candidatesToRemove.includes(candidate),
+          )
+        }
+      }
     }
     return false
-  }
-
-  function processEachHouseType(houseType: number) {
-    for (let j = 0; j < BOARD_SIZE; j++) {
-      const house = GROUP_OF_HOUSES[houseType][j]
-      const candidatesToRemove = getUsedNumbers(house)
-      removeCandidatesFromEachHouse(house, candidatesToRemove)
-    }
-  }
-
-  function removeCandidatesFromEachHouse(
-    house: House,
-    candidatesToRemove: CellValue[],
-  ) {
-    for (let k = 0; k < BOARD_SIZE; k++) {
-      const cell = house[k]
-      removeCandidatesFromCell(cell, candidatesToRemove)
-    }
   }
 
   const convertInitialBoardToSerializedBoard = (
@@ -919,7 +863,7 @@ export function createSudokuInstance(options: Options = {}) {
   } = {}): boolean | undefined => {
     if (isBoardFinished(board)) {
       if (!gradingMode) {
-        boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
+        boardFinishedFn?.(calculateBoardDifficulty(usedStrategies, strategies))
       }
       return false
     }
@@ -952,7 +896,7 @@ export function createSudokuInstance(options: Options = {}) {
       }
 
       if (isBoardFinished(board)) {
-        boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
+        boardFinishedFn?.(calculateBoardDifficulty(usedStrategies, strategies))
       }
     }
 
@@ -997,7 +941,7 @@ export function createSudokuInstance(options: Options = {}) {
     }
 
     if (isBoardFinished(board)) {
-      const boardDiff = calculateBoardDifficulty(usedStrategies)
+      const boardDiff = calculateBoardDifficulty(usedStrategies, strategies)
       data.level = boardDiff.level
       data.score = boardDiff.score
     }
@@ -1066,7 +1010,6 @@ export function createSudokuInstance(options: Options = {}) {
       resetCandidates()
 
       const boardAnalysis = analyzeBoard()
-      // console.log(cells)
       if (
         boardAnalysis.finished &&
         boardAnalysis.level &&

@@ -203,9 +203,6 @@ describe('createSudokuInstance', () => {
       //Arrange
       const sudoku = createSudokuInstance({
         difficulty: 'expert',
-        boardUpdatedFn({strategy, updatedCellsIndexes}) {
-          console.log({strategy, updatedCellsIndexes})
-        },
       })
 
       for (let index = 0; index < 81; index++) {
