@@ -8,8 +8,6 @@ import {
   BOARD_SIZE,
   CANDIDATES,
   NULL_CANDIDATE_LIST,
-  FILL_CELL,
-  REMOVE_CANDIDATES,
 } from './constants'
 import {
   Difficulty,
@@ -19,12 +17,20 @@ import {
   StrategyFn,
   Strategy,
   Options,
-  Houses,
   House,
   AnalyzeData,
+  SolveType,
 } from './types'
-import {contains, uniqueArray} from './utils'
+import {contains, generateHouseIndexList, uniqueArray} from './utils'
 
+const GROUP_OF_HOUSES = generateHouseIndexList(BOARD_SIZE)
+/* isBoardFinished
+ * -----------------------------------------------------------------*/
+const isBoardFinished = (board: InternalBoardType) => {
+  return new Array(BOARD_SIZE * BOARD_SIZE)
+    .fill(null)
+    .every((_, i) => board[i].value !== null)
+}
 export function createSudokuInstance(options: Options = {}) {
   const {
     boardErrorFn,
@@ -34,16 +40,7 @@ export function createSudokuInstance(options: Options = {}) {
     difficulty = DIFFICULTY_MEDIUM,
   } = options
 
-  let solveMode: typeof SOLVE_MODE_STEP | typeof SOLVE_MODE_ALL =
-    SOLVE_MODE_STEP
   let board: InternalBoardType = []
-
-  //solving without updating UI
-  let gradingMode = false
-
-  //silence board unsolvable errors
-
-  //used by the generateBoard function
 
   /*
     the score reflects how much increased difficulty the board gets by having the pattern rather than an already solved cell
@@ -53,67 +50,58 @@ export function createSudokuInstance(options: Options = {}) {
       title: 'Single Remaining Cell Strategy',
       fn: solveBySingleRemainingCellStrategy,
       score: 0.1,
-      solveType: FILL_CELL,
+      postFn: updateCandidatesBasedOnCellsValue,
     },
     {
       title: 'Single Candidate Cell Strategy',
       fn: solveBySingleCandidateCellStrategy,
       score: 9,
-      solveType: FILL_CELL,
-      prepareFn: updateCandidatesBasedOnCellsValue,
+      postFn: updateCandidatesBasedOnCellsValue,
     },
     {
       title: 'Single Candidate Value Strategy',
       fn: solveBySingleCandidateValueStrategy,
       score: 8,
-      solveType: REMOVE_CANDIDATES,
-      prepareFn: updateCandidatesBasedOnCellsValue,
+      postFn: updateCandidatesBasedOnCellsValue,
     },
     {
       title: 'Naked Pair Strategy',
       fn: solveByNakedPairStrategy,
       score: 50,
-      solveType: REMOVE_CANDIDATES,
     },
     {
       title: 'Pointing Elimination Strategy',
       fn: solveByPointingEliminationStrategy,
       score: 80,
-      solveType: REMOVE_CANDIDATES,
     },
     //harder for human to spot
     {
       title: 'Hidden Pair Strategy',
       fn: solveByHiddenPairStrategy,
       score: 90,
-      solveType: REMOVE_CANDIDATES,
     },
     {
       title: 'Naked Triplet Strategy',
       fn: solveByNakedTripletStrategy,
       score: 100,
-      solveType: REMOVE_CANDIDATES,
     },
     //never gets used unless above strategies are turned off?
     {
       title: 'Hidden Triplet Strategy',
       fn: solveByHiddenTripletStrategy,
       score: 140,
-      solveType: REMOVE_CANDIDATES,
     },
     //never gets used unless above strategies are turned off?
     {
       title: 'Naked Quadruple Strategy',
       fn: solveByNakedQuadrupleStrategy,
       score: 150,
-      solveType: REMOVE_CANDIDATES,
     },
     //never gets used unless above strategies are turned off?
     {
       title: 'Hidden Quadruple Strategy',
       fn: solveByHiddenQuadrupleStrategy,
       score: 280,
-      solveType: REMOVE_CANDIDATES,
     },
   ]
 
@@ -126,7 +114,6 @@ export function createSudokuInstance(options: Options = {}) {
   //boxes
 
   // all rows, columns and boxes
-  let boxOfHouses: Houses[] = [[], [], []]
 
   /* calculateBoardDifficulty
    * --------------
@@ -163,52 +150,6 @@ export function createSudokuInstance(options: Options = {}) {
     }
   }
 
-  /* isBoardFinished
-   * -----------------------------------------------------------------*/
-  const isBoardFinished = () => {
-    return new Array(BOARD_SIZE * BOARD_SIZE)
-      .fill(null)
-      .every((_, i) => board[i].value !== null)
-  }
-
-  /* generateHouseIndexList
-   * -----------------------------------------------------------------*/
-  const generateHouseIndexList = () => {
-    // reset boxOfHouses
-    boxOfHouses = [[], [], []]
-    const boxSideSize = Math.sqrt(BOARD_SIZE)
-
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      const horizontalRow = [] //horizontal row
-      const verticalRow = [] //vertical row
-      const box = []
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        horizontalRow.push(BOARD_SIZE * i + j)
-        verticalRow.push(BOARD_SIZE * j + i)
-
-        if (j < boxSideSize) {
-          for (let k = 0; k < boxSideSize; k++) {
-            //0, 0,0, 27, 27,27, 54, 54, 54 for a standard sudoku
-            const a = Math.floor(i / boxSideSize) * BOARD_SIZE * boxSideSize
-            //[0-2] for a standard sudoku
-            const b = (i % boxSideSize) * boxSideSize
-            const boxStartIndex = a + b //0 3 6 27 30 33 54 57 60
-
-            //every boxSideSize box, skip BOARD_SIZE num rows to next box (on new horizontal row)
-            //Math.floor(i/boxSideSize)*BOARD_SIZE*2
-            //skip across horizontally to next box
-            //+ i*boxSideSize;
-
-            box.push(boxStartIndex + BOARD_SIZE * j + k)
-          }
-        }
-      }
-      boxOfHouses[0].push(horizontalRow)
-      boxOfHouses[1].push(verticalRow)
-      boxOfHouses[2].push(box)
-    }
-  }
-
   /* initializeBoard
    * --------------
    *  inits board, variables.
@@ -216,8 +157,6 @@ export function createSudokuInstance(options: Options = {}) {
 
   const initializeBoard = () => {
     const alreadyEnhanced = board[0] !== null && typeof board[0] === 'object'
-
-    generateHouseIndexList()
 
     if (!alreadyEnhanced) {
       //enhance board to handle candidates, and possibly other params
@@ -273,7 +212,6 @@ export function createSudokuInstance(options: Options = {}) {
 
   const resetBoardVariables = () => {
     usedStrategies = []
-    gradingMode = false
   }
 
   /* resetCandidates
@@ -305,24 +243,24 @@ export function createSudokuInstance(options: Options = {}) {
 
   /* housesWithCell
    * --------------
-   *  returns boxOfHouses that a cell belongs to
+   *  returns groupOfHouses that a cell belongs to
    * -----------------------------------------------------------------*/
   const housesWithCell = (cellIndex: number) => {
     const boxSideSize = Math.sqrt(BOARD_SIZE)
-    const boxOfHouses = []
+    const groupOfHouses = []
     //horizontal row
     const horizontalRow = Math.floor(cellIndex / BOARD_SIZE)
-    boxOfHouses.push(horizontalRow)
+    groupOfHouses.push(horizontalRow)
     //vertical row
     const verticalRow = Math.floor(cellIndex % BOARD_SIZE)
-    boxOfHouses.push(verticalRow)
+    groupOfHouses.push(verticalRow)
     //box
     const box =
       Math.floor(horizontalRow / boxSideSize) * boxSideSize +
       Math.floor(verticalRow / boxSideSize)
-    boxOfHouses.push(box)
+    groupOfHouses.push(box)
 
-    return boxOfHouses
+    return groupOfHouses
   }
 
   /* getRemainingNumbers
@@ -371,17 +309,17 @@ export function createSudokuInstance(options: Options = {}) {
    * -----------------------------------------------------------------*/
 
   function solveBySingleRemainingCellStrategy(): ReturnType<StrategyFn> {
-    const houses = boxOfHouses.length
+    const groupOfHouses = GROUP_OF_HOUSES
 
-    for (let i = 0; i < houses; i++) {
+    for (let i = 0; i < groupOfHouses.length; i++) {
       for (let j = 0; j < BOARD_SIZE; j++) {
-        const singleEmptyCell = findSingleEmptyCellInHouse(boxOfHouses[i][j])
+        const singleEmptyCell = findSingleEmptyCellInHouse(groupOfHouses[i][j])
 
         if (singleEmptyCell) {
           return fillSingleEmptyCell(singleEmptyCell)
         }
 
-        if (isBoardFinished()) {
+        if (isBoardFinished(board)) {
           boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
           return true
         }
@@ -429,8 +367,8 @@ export function createSudokuInstance(options: Options = {}) {
   in one go. Since it also only updates candidates, we can skip straight to next strategy, since we know that neither this one nor the one(s) before (that only look at actual numbers on board), will find anything new.
   * -----------------------------------------------------------------*/
   function updateCandidatesBasedOnCellsValue() {
-    const boxOfHousesLength = boxOfHouses.length
-    for (let i = 0; i < boxOfHousesLength; i++) {
+    const groupOfHousesLength = GROUP_OF_HOUSES.length
+    for (let i = 0; i < groupOfHousesLength; i++) {
       processEachHouseType(i)
     }
     return false
@@ -438,7 +376,7 @@ export function createSudokuInstance(options: Options = {}) {
 
   function processEachHouseType(houseType: number) {
     for (let j = 0; j < BOARD_SIZE; j++) {
-      const house = boxOfHouses[houseType][j]
+      const house = GROUP_OF_HOUSES[houseType][j]
       const candidatesToRemove = getUsedNumbers(house)
       removeCandidatesFromEachHouse(house, candidatesToRemove)
     }
@@ -474,11 +412,11 @@ export function createSudokuInstance(options: Options = {}) {
   function solveBySingleCandidateValueStrategy(): ReturnType<StrategyFn> {
     //log("visualElimination");
     //for each type of house..(hor row / vert row / box)
-    const boxOfHousesLength = boxOfHouses.length
-    for (let i = 0; i < boxOfHousesLength; i++) {
+    const groupOfHousesLength = GROUP_OF_HOUSES.length
+    for (let i = 0; i < groupOfHousesLength; i++) {
       //for each such house
       for (let j = 0; j < BOARD_SIZE; j++) {
-        const house = boxOfHouses[i][j]
+        const house = GROUP_OF_HOUSES[i][j]
         const digits = getRemainingNumbers(house)
 
         //for each digit left for that house
@@ -549,12 +487,12 @@ export function createSudokuInstance(options: Options = {}) {
    * -----------------------------------------------------------------*/
   function solveByPointingEliminationStrategy() {
     //for each type of house..(hor row / vert row / box)
-    const boxOfHousesLength = boxOfHouses.length
-    for (let a = 0; a < boxOfHousesLength; a++) {
+    const groupOfHousesLength = GROUP_OF_HOUSES.length
+    for (let a = 0; a < groupOfHousesLength; a++) {
       const houseType = a
 
       for (let i = 0; i < BOARD_SIZE; i++) {
-        const house = boxOfHouses[houseType][i]
+        const house = GROUP_OF_HOUSES[houseType][i]
 
         //for each digit left for this house
         const digits = getRemainingNumbers(house)
@@ -616,10 +554,10 @@ export function createSudokuInstance(options: Options = {}) {
               else altHouseType = 1
             }
 
-            const altHouse = boxOfHouses[altHouseType][h[altHouseType]]
+            const altHouse = GROUP_OF_HOUSES[altHouseType][h[altHouseType]]
             const cellsEffected = []
 
-            //log("boxOfHouses["+houseType+"]["+h[houseType]+"].length: "+boxOfHouses[houseType][h[houseType]].length);
+            //log("groupOfHouses["+houseType+"]["+h[houseType]+"].length: "+groupOfHouses[houseType][h[houseType]].length);
 
             //need to remove cellsWithCandidate - from cells to remove from
             for (let x = 0; x < altHouse.length; x++) {
@@ -627,7 +565,7 @@ export function createSudokuInstance(options: Options = {}) {
                 cellsEffected.push(altHouse[x])
               }
             }
-            //log("boxOfHouses["+houseType+"]["+h[houseType]+"].length: "+boxOfHouses[houseType][h[houseType]].length);
+            //log("groupOfHouses["+houseType+"]["+h[houseType]+"].length: "+groupOfHouses[houseType][h[houseType]].length);
 
             //remove all candidates on altHouse, outside of house
             const cellsUpdated = removeCandidatesFromMultipleCells(
@@ -659,12 +597,12 @@ export function createSudokuInstance(options: Options = {}) {
     }> = []
     let minIndexes = [-1]
     //for each type of house..(hor row / vert row / box)
-    const boxOfHousesLength = boxOfHouses.length
-    for (let i = 0; i < boxOfHousesLength; i++) {
+    const groupOfHousesLength = GROUP_OF_HOUSES.length
+    for (let i = 0; i < groupOfHousesLength; i++) {
       //for each such house
       for (let j = 0; j < BOARD_SIZE; j++) {
         //log("["+i+"]"+"["+j+"]");
-        const house = boxOfHouses[i][j]
+        const house = GROUP_OF_HOUSES[i][j]
         if (getRemainingNumbers(house).length <= number)
           //can't eliminate any candidates
           continue
@@ -923,11 +861,11 @@ export function createSudokuInstance(options: Options = {}) {
       return false
     }
     //for each type of house..(hor row / vert row / box)
-    const boxOfHousesLength = boxOfHouses.length
-    for (let i = 0; i < boxOfHousesLength; i++) {
+    const groupOfHousesLength = GROUP_OF_HOUSES.length
+    for (let i = 0; i < groupOfHousesLength; i++) {
       //for each such house
       for (let j = 0; j < BOARD_SIZE; j++) {
-        const house = boxOfHouses[i][j]
+        const house = GROUP_OF_HOUSES[i][j]
         if (getRemainingNumbers(house).length <= number)
           //can't eliminate any candidates
           continue
@@ -974,22 +912,32 @@ export function createSudokuInstance(options: Options = {}) {
    *  returns canContinue true|false - only relevant for solveMode "all"
    * -----------------------------------------------------------------*/
 
-  const applySolvingStrategies = (
-    strategyIndex: number,
-  ): boolean | undefined => {
-    if (isBoardFinished()) {
+  const applySolvingStrategies = ({
+    strategyIndex = 0,
+    gradingMode = false,
+    solveMode = SOLVE_MODE_ALL,
+  }: {
+    strategyIndex?: number
+    gradingMode?: boolean
+    solveMode?: SolveType
+  } = {}): boolean | undefined => {
+    if (isBoardFinished(board)) {
       if (!gradingMode) {
         boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
       }
       return false
     }
 
-    strategies[strategyIndex].prepareFn?.()
     const effectedCells = strategies[strategyIndex].fn()
+    strategies[strategyIndex].postFn?.()
 
     if (effectedCells === false) {
       if (strategies.length > strategyIndex + 1) {
-        return applySolvingStrategies(strategyIndex + 1)
+        return applySolvingStrategies({
+          strategyIndex: strategyIndex + 1,
+          gradingMode,
+          solveMode,
+        })
       } else {
         boardErrorFn?.({message: 'No More Strategies To Solve The Board'})
         return false
@@ -1007,7 +955,7 @@ export function createSudokuInstance(options: Options = {}) {
         })
       }
 
-      if (isBoardFinished()) {
+      if (isBoardFinished(board)) {
         boardFinishedFn?.(calculateBoardDifficulty(usedStrategies))
       }
     }
@@ -1026,19 +974,19 @@ export function createSudokuInstance(options: Options = {}) {
    * reports back: error|finished, usedStrategies and difficulty level and score
    * -----------------------------------------------------------------*/
   const analyzeBoard = () => {
-    solveMode = SOLVE_MODE_ALL
-
     const usedStrategiesClone = [...usedStrategies]
     const boardClone = JSON.parse(JSON.stringify(board))
 
     let canContinue: boolean | undefined = true
     do {
-      const startStrategy = 0
-      canContinue = applySolvingStrategies(startStrategy)
+      canContinue = applySolvingStrategies({
+        gradingMode: true,
+        solveMode: SOLVE_MODE_ALL,
+      })
     } while (canContinue)
 
     const data: AnalyzeData = {
-      finished: isBoardFinished(),
+      finished: isBoardFinished(board),
       usedStrategies: strategies
         .map((strategy, i) => {
           if (typeof usedStrategies[i] !== 'undefined') {
@@ -1052,7 +1000,7 @@ export function createSudokuInstance(options: Options = {}) {
         .filter(Boolean),
     }
 
-    if (isBoardFinished()) {
+    if (isBoardFinished(board)) {
       const boardDiff = calculateBoardDifficulty(usedStrategies)
       data.level = boardDiff.level
       data.score = boardDiff.score
@@ -1114,44 +1062,48 @@ export function createSudokuInstance(options: Options = {}) {
     }
   }
 
-  const easyEnough = (
+  const isEasyEnough = (
     difficulty: Difficulty,
     currentDifficulty: Difficulty,
   ): boolean => {
-    if (currentDifficulty === DIFFICULTY_EASY) return true
-    if (currentDifficulty === DIFFICULTY_MEDIUM)
-      return difficulty !== DIFFICULTY_EASY
-    if (currentDifficulty === DIFFICULTY_HARD)
-      return difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
-    if (currentDifficulty === DIFFICULTY_EXPERT)
-      return (
-        difficulty !== DIFFICULTY_EASY &&
-        difficulty !== DIFFICULTY_MEDIUM &&
-        difficulty !== DIFFICULTY_HARD
-      )
-
-    return false
+    switch (currentDifficulty) {
+      case DIFFICULTY_EASY:
+        return true
+      case DIFFICULTY_MEDIUM:
+        return difficulty !== DIFFICULTY_EASY
+      case DIFFICULTY_HARD:
+        return (
+          difficulty !== DIFFICULTY_EASY && difficulty !== DIFFICULTY_MEDIUM
+        )
+      case DIFFICULTY_EXPERT:
+        return (
+          difficulty !== DIFFICULTY_EASY &&
+          difficulty !== DIFFICULTY_MEDIUM &&
+          difficulty !== DIFFICULTY_HARD
+        )
+    }
   }
   const isHardEnough = (
     difficulty: Difficulty,
     currentDifficulty: Difficulty,
   ): boolean => {
-    if (difficulty === DIFFICULTY_EASY) return true
-    if (difficulty === DIFFICULTY_MEDIUM)
-      return currentDifficulty !== DIFFICULTY_EASY
-    if (difficulty === DIFFICULTY_HARD)
-      return (
-        currentDifficulty !== DIFFICULTY_EASY &&
-        currentDifficulty !== DIFFICULTY_MEDIUM
-      )
-    if (difficulty === DIFFICULTY_EXPERT)
-      return (
-        currentDifficulty !== DIFFICULTY_EASY &&
-        currentDifficulty !== DIFFICULTY_MEDIUM &&
-        currentDifficulty !== DIFFICULTY_HARD
-      )
-
-    return false
+    switch (difficulty) {
+      case DIFFICULTY_EASY:
+        return true
+      case DIFFICULTY_MEDIUM:
+        return currentDifficulty !== DIFFICULTY_EASY
+      case DIFFICULTY_HARD:
+        return (
+          currentDifficulty !== DIFFICULTY_EASY &&
+          currentDifficulty !== DIFFICULTY_MEDIUM
+        )
+      case DIFFICULTY_EXPERT:
+        return (
+          currentDifficulty !== DIFFICULTY_EASY &&
+          currentDifficulty !== DIFFICULTY_MEDIUM &&
+          currentDifficulty !== DIFFICULTY_HARD
+        )
+    }
   }
 
   const prepareGameBoard = () => {
@@ -1172,7 +1124,7 @@ export function createSudokuInstance(options: Options = {}) {
       if (
         boardAnalysis.finished &&
         boardAnalysis.level &&
-        easyEnough(difficulty, boardAnalysis.level)
+        isEasyEnough(difficulty, boardAnalysis.level)
       ) {
         remainingCells--
       } else {
@@ -1196,8 +1148,6 @@ export function createSudokuInstance(options: Options = {}) {
   // generates board puzzle, i.e. the answers for this round
   // requires that a board for BOARD_SIZE has already been initiated
   const generateBoard = () => {
-    solveMode = SOLVE_MODE_ALL
-
     generateBoardAnswerRecursively(0)
 
     // attempt one - save the answer, and try digging multiple times.
@@ -1213,43 +1163,42 @@ export function createSudokuInstance(options: Options = {}) {
         board = boardAnswer
       }
     }
-    solveMode = SOLVE_MODE_STEP
     updateCandidatesBasedOnCellsValue()
   }
 
   /*
    * init/API/events
    *-----------*/
-  try {
-    if (!initBoardData) {
-      initializeBoard()
-      generateBoard()
-    } else {
-      board = convertInitialBoardToSerializedBoard(initBoardData)
-      initializeBoard()
-      updateCandidatesBasedOnCellsValue()
-      analyzeBoard()
-    }
-  } catch (e) {
-    boardErrorFn?.({message: e as string})
+  if (!initBoardData) {
+    initializeBoard()
+    generateBoard()
+  } else {
+    board = convertInitialBoardToSerializedBoard(initBoardData)
+    initializeBoard()
+    updateCandidatesBasedOnCellsValue()
+    analyzeBoard()
   }
 
   /**
    * PUBLIC methods
    * ----------------- */
   const solveAll = () => {
-    solveMode = SOLVE_MODE_ALL
     let canContinue: boolean | undefined = true
     while (canContinue) {
-      const startStrategyIndex = 0
-      canContinue = applySolvingStrategies(startStrategyIndex)
+      canContinue = applySolvingStrategies({solveMode: SOLVE_MODE_ALL})
     }
   }
 
   const solveStep = () => {
-    solveMode = SOLVE_MODE_STEP
-    const startStrategyIndex = 0
-    applySolvingStrategies(startStrategyIndex)
+    const _board = getBoard().slice()
+    applySolvingStrategies({solveMode: SOLVE_MODE_STEP})
+    if (
+      !isBoardFinished(board) &&
+      _board.filter(Boolean).length ===
+        getBoard().slice().filter(Boolean).length
+    ) {
+      solveStep()
+    }
   }
 
   const getBoard = () => board.map(cell => cell.value)
