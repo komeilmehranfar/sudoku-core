@@ -1,7 +1,7 @@
 <br/>
 <p align="center">
   <a href="https://github.com/komeilmehranfar/sudoku-core">
-    <img src="/assets/sudoku-core.png" alt="Logo" width="80" height="80">
+    <img src="/assets/sudoku-core.png" alt="Logo" width="320" height="180">
   </a>
 
   <h3 align="center">Sudoku Core Function</h3>
