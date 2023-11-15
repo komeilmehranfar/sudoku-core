@@ -3,7 +3,7 @@ name: Release & Publish
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -29,8 +29,8 @@ jobs:
       - name: Setup .npmrc file to publish to npm
         uses: actions/setup-node@v1
         with:
-          node-version: '14.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "14.x"
+          registry-url: "https://registry.npmjs.org"
       - name: Install modules
         run: npm install
       - name: Build
@@ -42,9 +42,9 @@ jobs:
       - name: Setup .npmrc file to publish to GitHub Packages
         uses: actions/setup-node@v1
         with:
-          node-version: '14.x'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@tomchen'
+          node-version: "14.x"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@komeilmehranfar"
       - run: npm run addscope
       - name: Publish to GitHub Packages
         run: npm publish

@@ -2,7 +2,7 @@
 
 This is an example TypeScript Package ready to be published on npm. It has been set up with automated tests and package publishing workflow using GitHub Actions CI/CD. It is made primarily for GitHub + VS Code (Windows / Mac / Linux) users who are about to write and publish their first TypeScript npm package. This package could serve as a starter / boilerplate / demo for them.
 
-[![npm package](https://img.shields.io/badge/npm%20i-example--typescript--package-brightgreen)](https://www.npmjs.com/package/example-typescript-package) [![version number](https://img.shields.io/npm/v/example-typescript-package?color=green&label=version)](https://github.com/tomchen/example-typescript-package/releases) [![Actions Status](https://github.com/tomchen/example-typescript-package/workflows/Test/badge.svg)](https://github.com/tomchen/example-typescript-package/actions) [![License](https://img.shields.io/github/license/tomchen/example-typescript-package)](https://github.com/tomchen/example-typescript-package/blob/main/LICENSE)
+[![npm package](https://img.shields.io/badge/npm%20i-example--typescript--package-brightgreen)](https://www.npmjs.com/package/example-typescript-package) [![version number](https://img.shields.io/npm/v/example-typescript-package?color=green&label=version)](https://github.com/komeilmehranfar/example-typescript-package/releases) [![Actions Status](https://github.com/komeilmehranfar/example-typescript-package/workflows/Test/badge.svg)](https://github.com/komeilmehranfar/example-typescript-package/actions) [![License](https://img.shields.io/github/license/komeilmehranfar/example-typescript-package)](https://github.com/komeilmehranfar/example-typescript-package/blob/main/LICENSE)
 
 It uses npm, TypeScript compiler, Jest, webpack, ESLint, Prettier, husky, pinst, commitlint. The production files include CommonJS, ES Modules, UMD version and TypeScript declaration files.
 
@@ -14,11 +14,11 @@ It uses npm, TypeScript compiler, Jest, webpack, ESLint, Prettier, husky, pinst,
 
 ### Use as a template
 
-[![Use the template](https://img.shields.io/static/v1?label=&message=Click%20here%20to%20use%20this%20package%20as%20a%20template%20to%20start%20a%20new%20repo%20on%20GitHub&color=brightgreen&style=for-the-badge)](https://github.com/tomchen/example-typescript-package/generate)
+[![Use the template](https://img.shields.io/static/v1?label=&message=Click%20here%20to%20use%20this%20package%20as%20a%20template%20to%20start%20a%20new%20repo%20on%20GitHub&color=brightgreen&style=for-the-badge)](https://github.com/komeilmehranfar/example-typescript-package/generate)
 
 (Click the above button to use this example package as a template for your new GitHub repo, this will initialize a new repository and my commits will not be in your git history)
 
-(If you do not use GitHub, you can [download the archive of the example package](https://github.com/tomchen/example-typescript-package/archive/main.zip))
+(If you do not use GitHub, you can [download the archive of the example package](https://github.com/komeilmehranfar/example-typescript-package/archive/main.zip))
 
 ### Set up tools and environment
 
@@ -87,8 +87,8 @@ This will create a symbolic link from globally-installed example-typescript-pack
 You can then create a, for example, **testnum.ts** file with the content:
 
 ```ts
-import { Num } from 'example-typescript-package'
-console.log(new Num(5).add(new Num(6)).val() === 11)
+import { Num } from "example-typescript-package";
+console.log(new Num(5).add(new Num(6)).val() === 11);
 ```
 
 If you don't see any linting errors in VS Code, if you put your mouse cursor over `Num` and see its type, then it's all good.
@@ -133,11 +133,11 @@ On the page of your newly created or existing GitHub repo, click **Settings** ->
 
 #### CI publishing to GitHub Packages
 
-The default configuration of this example package **assumes you publish package with an unscoped name to npm**. GitHub Packages must be named with a scope name such as "@tomchen/example-typescript-package".
+The default configuration of this example package **assumes you publish package with an unscoped name to npm**. GitHub Packages must be named with a scope name such as "@komeilmehranfar/example-typescript-package".
 
-Change `scope: '@tomchen'` to your own scope in **.github/workflows/publish.yml**, also change `addscope` in **package.json**.
+Change `scope: '@komeilmehranfar'` to your own scope in **.github/workflows/publish.yml**, also change `addscope` in **package.json**.
 
-If you publish package with a scoped name to npm, change the name to something like "@tomchen/example-typescript-package" in **package.json**, and remove the `- run: npm run addscope` line in **.github/workflows/publish.yml**
+If you publish package with a scoped name to npm, change the name to something like "@komeilmehranfar/example-typescript-package" in **package.json**, and remove the `- run: npm run addscope` line in **.github/workflows/publish.yml**
 
 If you publish your package to npm only, and don't want to publish to GitHub Packages, then delete the lines from `- name: Setup .npmrc file to publish to GitHub Packages` to the end of the file in **.github/workflows/publish.yml**.
 
@@ -148,7 +148,7 @@ If you publish your package to npm only, and don't want to publish to GitHub Pac
 Now everything is set. The example package has automated tests and upload (publishing) already set up with GitHub Actions:
 
 - Every time you `git push` or a pull request is submitted on your `master` or `main` branch, the package is automatically tested against the desired OS and Node.js versions with GitHub Actions.
-- Every time an [**annotated**](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_annotated_tags) (not [lightweight](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_lightweight_tags)) "v*" tag is pushed onto GitHub, a GitHub release is automatically generated from this version, it also automatically publishes to the npm registry and/or GitHub Packages registry to update the package there.
+- Every time an [**annotated**](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_annotated_tags) (not [lightweight](https://git-scm.com/book/en/v2/Git-Basics-Tagging#_lightweight_tags)) "v\*" tag is pushed onto GitHub, a GitHub release is automatically generated from this version, it also automatically publishes to the npm registry and/or GitHub Packages registry to update the package there.
   - [`npm version`](https://docs.npmjs.com/cli/version/) / [`yarn version`](https://yarnpkg.com/cli/version) is useful to create tags.
   - (npm or yarn v1, not yarn v2) You could also add `"postversion": "git push --follow-tags"` to **package.json** file to push it automatically after `npm` or `yarn` `version`.
   - (yarn v1, not v2) because `yarn version` doesn't check whether there are uncommitted changes, you can add `"preversion": "git diff-index --quiet HEAD --"` to **package.json**
@@ -165,7 +165,7 @@ If you want to modify the description / README on the npm package page, you have
 - Works fine in VS Code. In my configuration **.eslintrc** and **.prettierrc** cooperate perfectly
 - See `scripts` in **package.json** for other predefined script commands
 - [pinst](https://github.com/typicode/pinst) is used to solve [a problem of husky](https://typicode.github.io/husky/#/?id=yarn-2)
-- The installation of the package with npm, yarn v1 and yarn v2+ is ensured in [this test](https://github.com/tomchen/example-typescript-package-test)
+- The installation of the package with npm, yarn v1 and yarn v2+ is ensured in [this test](https://github.com/komeilmehranfar/example-typescript-package-test)
 
 ## References
 
@@ -174,4 +174,4 @@ If you want to modify the description / README on the npm package page, you have
 - [Publishing - TypeScript docs](https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html)
 - [Publishing Node.js packages - GitHub Docs](https://docs.github.com/en/free-pro-team@latest/actions/guides/publishing-nodejs-packages)
 
-Btw, if you want to publish Python package, go to [Example PyPI (Python Package Index) Package & Tutorial / Instruction / Workflow for 2021](https://github.com/tomchen/example_pypi_package).
+Btw, if you want to publish Python package, go to [Example PyPI (Python Package Index) Package & Tutorial / Instruction / Workflow for 2021](https://github.com/komeilmehranfar/example_pypi_package).
