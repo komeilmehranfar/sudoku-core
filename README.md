@@ -13,7 +13,7 @@
     <a href="https://github.com/komeilmehranfar/sudoku-core"><strong>Explore the docs »</strong></a>
     <br/>
     <br/>
-    <a href="https://github.com/komeilmehranfar/sudoku-core">View Demo</a>
+    <a href="https://codesandbox.io/s/cold-fast-vvrf2d?file=/src/index.ts">View Demo</a>
     .
     <a href="https://github.com/komeilmehranfar/sudoku-core/issues">Report Bug</a>
     .
