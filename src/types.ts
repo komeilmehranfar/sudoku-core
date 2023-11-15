@@ -5,65 +5,56 @@ import {
   DIFFICULTY_EXPERT,
   SOLVE_MODE_STEP,
   SOLVE_MODE_ALL,
-} from './constants'
-
-export type PublicBoard = Array<number | null>
-type PrivateBoardCell = {
-  value: number | null
-  candidates: Array<number | null>
-}
-export type PrivateBoard = Array<PrivateBoardCell>
-
+} from "./constants";
 export type Difficulty =
   | typeof DIFFICULTY_EASY
   | typeof DIFFICULTY_MEDIUM
   | typeof DIFFICULTY_HARD
-  | typeof DIFFICULTY_EXPERT
-export type ApiBoardType = Array<number | null>
-export type CellValue = number | null
+  | typeof DIFFICULTY_EXPERT;
+export type Board = Array<number | null>;
+export type CellValue = number | null;
 export type Cell = {
-  value: CellValue
-  candidates: Array<CellValue>
-  invalidCandidates?: Array<CellValue>
-}
-export type InternalBoardType = Array<Cell>
-export type StrategyFn = () => boolean | Array<number> | -1
+  value: CellValue;
+  candidates: Array<CellValue>;
+  invalidCandidates?: Array<CellValue>;
+};
+export type InternalBoard = Array<Cell>;
+export type StrategyFn = () => boolean | Array<number> | -1;
 export interface Strategy {
-  title: string
-  score: number
-  fn: StrategyFn
-  postFn?: () => void
+  title: string;
+  score: number;
+  fn: StrategyFn;
+  postFn?: () => void;
 }
 
 export interface Options {
-  boardErrorFn?: ({message}: {message: string}) => void
-  boardFinishedFn?: ({level, score}: {level: Difficulty; score: number}) => void
-  boardUpdatedFn?: ({
+  onError?: ({ message }: { message: string }) => void;
+  onFinish?: ({ level, score }: { level: Difficulty; score: number }) => void;
+  onUpdate?: ({
     strategy,
     updatedCellsIndexes,
   }: {
-    strategy: string
-    updatedCellsIndexes: Array<number>
-  }) => void
-  candidateShowToggleFn?: (isShowing: boolean) => void
-  initBoardData?: ApiBoardType
-  difficulty?: Difficulty
+    strategy: string;
+    updatedCellsIndexes: Array<number>;
+  }) => void;
+  initBoardData?: Board;
+  difficulty?: Difficulty;
 }
 
 // we call row, column, and box a house
-export type House = Array<number>
+export type House = Array<number>;
 // rows, columns, and boxes
-export type Houses = Array<House>
+export type Houses = Array<House>;
 
 export type AnalyzeData = {
-  error?: string
-  finished?: boolean
+  error?: string;
+  finished?: boolean;
   usedStrategies?: ({
-    title: string
-    freq: number
-  } | null)[]
-  level?: Difficulty
-  score?: number
-}
+    title: string;
+    freq: number;
+  } | null)[];
+  level?: Difficulty;
+  score?: number;
+};
 
-export type SolveType = typeof SOLVE_MODE_STEP | typeof SOLVE_MODE_ALL
+export type SolveType = typeof SOLVE_MODE_STEP | typeof SOLVE_MODE_ALL;
