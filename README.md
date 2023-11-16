@@ -63,28 +63,9 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
 npm install sudoku-core@latest
 ```
 
-####
+#### generate
 
-Ex:
-
-```json
-[
-  1,
-  null,
-  9,
-  5,
-  8,
-  null,
-  null,
-  6,
-  3
-  //... 81 items
-]
-```
-
-### functions
-
-**generate**: Generates a new Sudoku puzzle.
+- Generates a new Sudoku puzzle.
 
 ```typescript
 // difficulty: easy - medium - hard - expert - master;
@@ -107,7 +88,9 @@ console.log(board);
 ]
 ```
 
-**solve**: Solves the entire puzzle.
+#### solve
+
+- Solves the entire puzzle.
 
 ```typescript
 // board:
@@ -138,7 +121,9 @@ console.log(solvedBoard);
 ]
 ```
 
-**solveStep**: Solves the next step of the puzzle.
+#### solveStep
+
+- Solves the next step of the puzzle.
 
 ```typescript
 // board:
@@ -177,7 +162,9 @@ console.log(solvedBoard);
 ]
 ```
 
-**analyze**: Returns an analysis of the current board state.
+#### analyze
+
+- Returns an analysis of the current board state.
 
 ```typescript
 // board:
