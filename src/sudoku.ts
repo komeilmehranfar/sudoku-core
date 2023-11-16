@@ -44,7 +44,7 @@ export function createSudokuInstance(options: Options = {}) {
     onError,
     onUpdate,
     onFinish,
-    initBoardData,
+    initBoard,
     difficulty = DIFFICULTY_MEDIUM,
   } = options;
 
@@ -122,9 +122,7 @@ export function createSudokuInstance(options: Options = {}) {
       //enhance board to handle candidates, and possibly other params
       board = new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, index) => {
         const value =
-          typeof initBoardData?.[index] === "undefined"
-            ? null
-            : initBoardData[index];
+          typeof initBoard?.[index] === "undefined" ? null : initBoard[index];
         const candidates =
           value == null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice();
         return {
@@ -875,7 +873,7 @@ export function createSudokuInstance(options: Options = {}) {
       if (typeof onUpdate === "function") {
         onUpdate({
           strategy: strategies[strategyIndex].title,
-          updatedCellsIndexes: effectedCells as Array<number>,
+          updatedIndexes: effectedCells as Array<number>,
         });
       }
 
@@ -949,8 +947,8 @@ export function createSudokuInstance(options: Options = {}) {
       const boardAnalysis = analyzeBoard();
       if (
         boardAnalysis.finished &&
-        boardAnalysis.level &&
-        isEasyEnough(difficulty, boardAnalysis.level)
+        boardAnalysis.difficulty &&
+        isEasyEnough(difficulty, boardAnalysis.difficulty)
       ) {
         removalCount--;
       } else {
@@ -992,7 +990,7 @@ export function createSudokuInstance(options: Options = {}) {
 
     if (isBoardFinished(board)) {
       const boardDiff = calculateBoardDifficulty(usedStrategies, strategies);
-      data.level = boardDiff.level;
+      data.difficulty = boardDiff.difficulty;
       data.score = boardDiff.score;
     }
 
@@ -1004,7 +1002,7 @@ export function createSudokuInstance(options: Options = {}) {
   }
 
   // Function to generate the Sudoku board
-  function generateBoard() {
+  function generateBoard(): Board {
     generateBoardAnswerRecursively(0);
 
     // attempt one - save the answer, and try digging multiple times.
@@ -1014,23 +1012,25 @@ export function createSudokuInstance(options: Options = {}) {
     while (boardTooEasy) {
       prepareGameBoard();
       const data = analyzeBoard();
-      if (data.level && isHardEnough(difficulty, data.level)) {
+      if (data.difficulty && isHardEnough(difficulty, data.difficulty)) {
         boardTooEasy = false;
       } else {
         board = boardAnswer;
       }
     }
     updateCandidatesBasedOnCellsValue();
+    return getBoard();
   }
 
-  const solveAll = () => {
+  const solveAll = (): Board => {
     let canContinue: boolean | undefined = true;
     while (canContinue) {
       canContinue = applySolvingStrategies({ solveMode: SOLVE_MODE_ALL });
     }
+    return getBoard();
   };
 
-  const solveStep = () => {
+  const solveStep = (): Board => {
     const _board = getBoard().slice();
     applySolvingStrategies({ solveMode: SOLVE_MODE_STEP });
     if (
@@ -1040,15 +1040,16 @@ export function createSudokuInstance(options: Options = {}) {
     ) {
       solveStep();
     }
+    return getBoard();
   };
 
-  const getBoard = () => board.map((cell) => cell.value);
+  const getBoard = (): Board => board.map((cell) => cell.value);
 
-  if (!initBoardData) {
+  if (!initBoard) {
     initializeBoard();
     generateBoard();
   } else {
-    board = convertInitialBoardToSerializedBoard(initBoardData);
+    board = convertInitialBoardToSerializedBoard(initBoard);
     initializeBoard();
     updateCandidatesBasedOnCellsValue();
     analyzeBoard();

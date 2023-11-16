@@ -28,16 +28,16 @@ export interface Strategy {
 }
 
 export interface Options {
-  onError?: ({ message }: { message: string }) => void;
-  onFinish?: ({ level, score }: { level: Difficulty; score: number }) => void;
+  onError?: (args: { message: string }) => void;
+  onFinish?: (args: { difficulty: Difficulty; score: number }) => void;
   onUpdate?: ({
     strategy,
-    updatedCellsIndexes,
+    updatedIndexes,
   }: {
     strategy: string;
-    updatedCellsIndexes: Array<number>;
+    updatedIndexes: Array<number>;
   }) => void;
-  initBoardData?: Board;
+  initBoard?: Board;
   difficulty?: Difficulty;
 }
 
@@ -53,7 +53,7 @@ export type AnalyzeData = {
     title: string;
     freq: number;
   } | null)[];
-  level?: Difficulty;
+  difficulty?: Difficulty;
   score?: number;
 };
 

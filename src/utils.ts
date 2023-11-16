@@ -155,7 +155,7 @@ export const getRandomCandidateOfCell = (candidates: Array<CellValue>) => {
 export const calculateBoardDifficulty = (
   usedStrategies: Array<number>,
   strategies: Array<Strategy>,
-): { level: Difficulty; score: number } => {
+): { difficulty: Difficulty; score: number } => {
   const validUsedStrategies = usedStrategies.filter(Boolean);
   const totalScore = validUsedStrategies.reduce(
     (accumulatedScore, frequency, i) => {
@@ -164,17 +164,17 @@ export const calculateBoardDifficulty = (
     },
     0,
   );
-  let level: Difficulty =
+  let difficulty: Difficulty =
     validUsedStrategies.length < 3
       ? DIFFICULTY_EASY
       : validUsedStrategies.length < 4
       ? DIFFICULTY_MEDIUM
       : DIFFICULTY_HARD;
 
-  if (totalScore > 750) level = DIFFICULTY_EXPERT;
+  if (totalScore > 750) difficulty = DIFFICULTY_EXPERT;
 
   return {
-    level,
+    difficulty,
     score: totalScore,
   };
 };

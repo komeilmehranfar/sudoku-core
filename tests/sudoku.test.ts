@@ -11,7 +11,7 @@ describe("createSudokuInstance", () => {
         const analyze = sudoku.analyzeBoard();
 
         // Assert
-        expect(analyze.level).toBe("easy");
+        expect(analyze.difficulty).toBe("easy");
       });
       it("should generate a valid medium difficulty board", () => {
         //Arrange
@@ -21,7 +21,7 @@ describe("createSudokuInstance", () => {
         const analyze = sudoku.analyzeBoard();
 
         // Assert
-        expect(analyze.level).toBe("medium");
+        expect(analyze.difficulty).toBe("medium");
       });
       it("should generate a valid hard difficulty board", () => {
         //Arrange
@@ -31,7 +31,7 @@ describe("createSudokuInstance", () => {
         const analyze = sudoku.analyzeBoard();
 
         // Assert
-        expect(analyze.level).toBe("hard");
+        expect(analyze.difficulty).toBe("hard");
       });
       it("should generate a valid expert difficulty board", () => {
         //Arrange
@@ -41,7 +41,7 @@ describe("createSudokuInstance", () => {
         const analyze = sudoku.analyzeBoard();
 
         // Assert
-        expect(analyze.level).toBe("expert");
+        expect(analyze.difficulty).toBe("expert");
       });
     });
     describe("initialBoard", () => {
@@ -51,12 +51,12 @@ describe("createSudokuInstance", () => {
         const board = sudoku.getBoard();
 
         //Act
-        const newSudoku = createSudokuInstance({ initBoardData: board });
+        const newSudoku = createSudokuInstance({ initBoard: board });
 
         // Assert
         const newAnalyze = newSudoku.analyzeBoard();
         const newBoard = newSudoku.getBoard();
-        expect(newAnalyze.level).toBe("hard");
+        expect(newAnalyze.difficulty).toBe("hard");
         expect(
           newBoard.every((newCell, index) => board[index] == newCell),
         ).toBe(true);
@@ -73,7 +73,7 @@ describe("createSudokuInstance", () => {
 
         //Act
         createSudokuInstance({
-          initBoardData: invalidBoard,
+          initBoard: invalidBoard,
           onError,
         });
 
@@ -84,7 +84,7 @@ describe("createSudokuInstance", () => {
     describe("onUpdate", () => {
       it("should be called when board is changed", () => {
         //Arrange
-        let updatedData = { strategy: "", updatedCellsIndexes: [] };
+        let updatedData = { strategy: "", updatedIndexes: [] };
         const onUpdate = jest.fn((args) => {
           updatedData = args;
         });
@@ -151,7 +151,7 @@ describe("createSudokuInstance", () => {
     });
     it("should be called when board is finished", () => {
       //Arrange
-      let finishedData = { level: "", score: 0 };
+      let finishedData = { difficulty: "", score: 0 };
       const onFinish = jest.fn((args) => {
         finishedData = args;
       });
@@ -165,7 +165,7 @@ describe("createSudokuInstance", () => {
 
       // Assert
       expect(onFinish).toHaveBeenCalled();
-      expect(finishedData.level === "expert").toBe(true);
+      expect(finishedData.difficulty === "expert").toBe(true);
       // expect(errorMessage).toBe('no more strategies')
     });
   });
