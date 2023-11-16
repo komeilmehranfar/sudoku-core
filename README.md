@@ -63,14 +63,7 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
 npm install sudoku-core@latest
 ```
 
-### Inputs
-
-#### board
-
-- it has numbers from 1-9 or null
-- it has 81 cells
-- it's solvable (not by brute force)
-- there is only one version of answer to this board (not the process, the result)
+####
 
 Ex:
 
@@ -89,19 +82,12 @@ Ex:
 ]
 ```
 
-#### difficulty
-
-- **easy**
-- **medium**
-- **hard**
-- **expert**
-- **master**
-
-### Methods
+### functions
 
 **generate**: Generates a new Sudoku puzzle.
 
 ```typescript
+// difficulty: easy - medium - hard - expert - master;
 const board = generate("easy");
 console.log(board);
 ```
@@ -124,6 +110,23 @@ console.log(board);
 **solve**: Solves the entire puzzle.
 
 ```typescript
+// board:
+// - it has numbers from 1-9 or null
+// - it has 81 cells
+// - it's solvable (not by brute force)
+// - there is only one version of answer to this board (not the process, the result)
+// [
+//   1,
+//   null,
+//   9,
+//   5,
+//   8,
+//   null,
+//   null,
+//   6,
+//   3
+//   ... 81 items
+// ]
 const solvedBoard = solve(board);
 console.log(solvedBoard);
 ```
@@ -138,6 +141,23 @@ console.log(solvedBoard);
 **solveStep**: Solves the next step of the puzzle.
 
 ```typescript
+// board:
+// - it has numbers from 1-9 or null
+// - it has 81 cells
+// - it's solvable (not by brute force)
+// - there is only one version of answer to this board (not the process, the result)
+// [
+//   1,
+//   null,
+//   9,
+//   5,
+//   8,
+//   null,
+//   null,
+//   6,
+//   3
+//   ... 81 items
+// ]
 const solvedBoard = solveStep(board);
 console.log(solvedBoard);
 ```
@@ -160,6 +180,23 @@ console.log(solvedBoard);
 **analyze**: Returns an analysis of the current board state.
 
 ```typescript
+// board:
+// - it has numbers from 1-9 or null
+// - it has 81 cells
+// - it's solvable (not by brute force)
+// - there is only one version of answer to this board (not the process, the result)
+// [
+//   1,
+//   null,
+//   9,
+//   5,
+//   8,
+//   null,
+//   null,
+//   6,
+//   3
+//   ... 81 items
+// ]
 const analyzeData = analyze(board);
 console.log(analyzeData);
 ```
