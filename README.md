@@ -342,11 +342,3 @@ for more information.
 ## Acknowledgements
 
 - [Komeil Mehranfar](https://github.com/komeilmehranfar/)
-
-```
-
-```
-
-```
-
-```
