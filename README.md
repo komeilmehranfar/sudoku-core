@@ -231,7 +231,7 @@ appreciated**.
 ## License
 
 Distributed under the MIT License. See
-[LICENSE](https://github.com/komeilmehranfar/sudoku-core/blob/main/LICENSE.md)
+[LICENSE](https://github.com/komeilmehranfar/sudoku-core/blob/main/LICENSE)
 for more information.
 
 ## Authors
