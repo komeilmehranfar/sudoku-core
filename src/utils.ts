@@ -3,6 +3,7 @@ import {
   DIFFICULTY_EASY,
   DIFFICULTY_EXPERT,
   DIFFICULTY_HARD,
+  DIFFICULTY_MASTER,
   DIFFICULTY_MEDIUM,
   NULL_CANDIDATE_LIST,
 } from "./constants";
@@ -85,6 +86,13 @@ export const isEasyEnough = (
         difficulty !== DIFFICULTY_MEDIUM &&
         difficulty !== DIFFICULTY_HARD
       );
+    case DIFFICULTY_MASTER:
+      return (
+        difficulty !== DIFFICULTY_EASY &&
+        difficulty !== DIFFICULTY_MEDIUM &&
+        difficulty !== DIFFICULTY_HARD &&
+        difficulty !== DIFFICULTY_EXPERT
+      );
   }
 };
 export const isHardEnough = (
@@ -106,6 +114,13 @@ export const isHardEnough = (
         currentDifficulty !== DIFFICULTY_EASY &&
         currentDifficulty !== DIFFICULTY_MEDIUM &&
         currentDifficulty !== DIFFICULTY_HARD
+      );
+    case DIFFICULTY_MASTER:
+      return (
+        currentDifficulty !== DIFFICULTY_EASY &&
+        currentDifficulty !== DIFFICULTY_MEDIUM &&
+        currentDifficulty !== DIFFICULTY_HARD &&
+        currentDifficulty !== DIFFICULTY_EXPERT
       );
   }
 };
@@ -172,6 +187,7 @@ export const calculateBoardDifficulty = (
       : DIFFICULTY_HARD;
 
   if (totalScore > 750) difficulty = DIFFICULTY_EXPERT;
+  if (totalScore > 2000) difficulty = DIFFICULTY_MASTER;
 
   return {
     difficulty,

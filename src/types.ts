@@ -5,12 +5,14 @@ import {
   DIFFICULTY_EXPERT,
   SOLVE_MODE_STEP,
   SOLVE_MODE_ALL,
+  DIFFICULTY_MASTER,
 } from "./constants";
 export type Difficulty =
   | typeof DIFFICULTY_EASY
   | typeof DIFFICULTY_MEDIUM
   | typeof DIFFICULTY_HARD
-  | typeof DIFFICULTY_EXPERT;
+  | typeof DIFFICULTY_EXPERT
+  | typeof DIFFICULTY_MASTER;
 export type Board = Array<number | null>;
 export type CellValue = number | null;
 export type Cell = {
@@ -47,8 +49,7 @@ export type House = Array<number>;
 export type Houses = Array<House>;
 
 export type AnalyzeData = {
-  error?: string;
-  finished?: boolean;
+  isValid?: boolean;
   usedStrategies?: ({
     title: string;
     freq: number;

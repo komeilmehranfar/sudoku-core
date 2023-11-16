@@ -7,6 +7,7 @@ export const DIFFICULTY_EASY = "easy";
 export const DIFFICULTY_MEDIUM = "medium";
 export const DIFFICULTY_HARD = "hard";
 export const DIFFICULTY_EXPERT = "expert";
+export const DIFFICULTY_MASTER = "master";
 
 export const SOLVE_MODE_STEP = "step";
 export const SOLVE_MODE_ALL = "all";

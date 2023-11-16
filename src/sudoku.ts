@@ -946,7 +946,7 @@ export function createSudokuInstance(options: Options = {}) {
 
       const boardAnalysis = analyzeBoard();
       if (
-        boardAnalysis.finished &&
+        boardAnalysis.isValid &&
         boardAnalysis.difficulty &&
         isEasyEnough(difficulty, boardAnalysis.difficulty)
       ) {
@@ -974,7 +974,7 @@ export function createSudokuInstance(options: Options = {}) {
     } while (canContinue);
 
     const data: AnalyzeData = {
-      finished: isBoardFinished(board),
+      isValid: isBoardFinished(board),
       usedStrategies: strategies
         .map((strategy, i) => {
           if (typeof usedStrategies[i] !== "undefined") {
