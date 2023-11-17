@@ -6,12 +6,9 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
     <img src="/assets/sudoku-core.png" alt="Logo" width="320" height="180">
   </a>
 
-  <h3 align="center">Sudoku Core Function</h3>
+  <h3 align="center">Generate, Solve, Analyze Sudoku boards</h3>
 
-  <p align="center">
-    Generate, Solve (step-by-step or all), Analyze Sudoku boards 
-    <br/>
-    <br/>
+  <p align="center"> 
     <a href="https://github.com/komeilmehranfar/sudoku-core"><strong>Explore the docs »</strong></a>
     <br/>
     <br/>
