@@ -60,6 +60,15 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
 npm install sudoku-core@latest
 ```
 
+### Usage
+
+| function                | Input                                                | Output                  |
+| ----------------------- | ---------------------------------------------------- | ----------------------- |
+| [generate](#generate)   | "easy" \| "medium" \| "hard" \| "expert" \| "master" | Board                   |
+| [solve](#solve)         | Board                                                | Board                   |
+| [solveStep](#solveStep) | Board                                                | Board                   |
+| [analyze](#analyze)     | Board                                                | [AnalyzeData](#analyze) |
+
 #### generate
 
 - Generates a new Sudoku puzzle.
@@ -239,3 +248,7 @@ for more information.
 ## Acknowledgements
 
 - [Komeil Mehranfar](https://github.com/komeilmehranfar/)
+
+## References
+
+- Inspired by [Jonas Ohlsson Aden](https://github.com/pocketjoso/sudokuJS)
