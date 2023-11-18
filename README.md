@@ -20,7 +20,7 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
   </p>
 </p>
 
-![npm](https://img.shields.io/npm/dt/sudoku-core)
+![Downloads](https://img.shields.io/npm/dt/sudoku-core)
 ![Contributors](https://img.shields.io/github/contributors/komeilmehranfar/sudoku-core?color=dark-green)
 ![Forks](https://img.shields.io/github/forks/komeilmehranfar/sudoku-core?style=social)
 ![Stargazers](https://img.shields.io/github/stars/komeilmehranfar/sudoku-core?style=social)

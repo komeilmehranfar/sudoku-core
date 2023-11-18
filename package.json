@@ -1,6 +1,6 @@
 {
   "name": "sudoku-core",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "A typescript Sudoku package for generating, solving (step-by-step or all), and analyzing Sudoku boards with ease. Perfect for building Sudoku games and integrating Sudoku functionality into your applications.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
