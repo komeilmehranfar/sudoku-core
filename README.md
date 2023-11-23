@@ -42,6 +42,8 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
 
 ## About the package
 
+**gzipped size**: 3.2k
+
 **Key Features**:
 
 **Board Generation**: Quickly create Sudoku boards for various difficulty levels.
@@ -207,6 +209,10 @@ console.log(analyzeData);
   "score": 1683.1
 }
 ```
+
+## Project Stats
+
+![Alt](https://repobeats.axiom.co/api/embed/0dbd157dd8d7156e22ce6e7f1d2b3f1dc3bd6d4d.svg "Repobeats analytics image")
 
 ## Roadmap
 

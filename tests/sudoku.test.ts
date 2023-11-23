@@ -1,4 +1,11 @@
 import { generate, analyze, solve, solveStep } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import {
+  EASY_SUDOKU_BOARD_FOR_TEST,
+  EXPERT_SUDOKU_BOARD_FOR_TEST,
+  HARD_SUDOKU_BOARD_FOR_TEST,
+  MASTER_SUDOKU_BOARD_FOR_TEST,
+  MEDIUM_SUDOKU_BOARD_FOR_TEST,
+} from "./constants";
 
 describe("sudoku-core", () => {
   describe("generate method", () => {
@@ -15,7 +22,6 @@ describe("sudoku-core", () => {
     it("should generate a valid medium difficulty board", () => {
       //Arrange
       const sudokuBoard = generate("medium");
-
       //Act
       const data = analyze(sudokuBoard);
 
@@ -87,26 +93,56 @@ describe("sudoku-core", () => {
       }
     });
   });
-  describe("isBoardValid method", () => {
-    it("should validate the board", () => {
+  describe("analyze method", () => {
+    it("should validate the easy board", () => {
       //Arrange
-      const sudokuBoard = generate("expert");
+      const sudokuBoard = [...EASY_SUDOKU_BOARD_FOR_TEST];
 
       //Act
-      const { isValid } = analyze(sudokuBoard);
+      const { difficulty } = analyze(sudokuBoard);
 
       // Assert
-      expect(isValid).toBe(true);
+      expect(difficulty).toBe("easy");
     });
-    it("should invalidate the random generated board", () => {
+    it("should validate the medium board", () => {
       //Arrange
-      const invalidSudokuBoard = [1, null, 1];
+      const sudokuBoard = [...MEDIUM_SUDOKU_BOARD_FOR_TEST];
 
       //Act
-      const { isValid } = analyze(invalidSudokuBoard);
+      const { difficulty } = analyze(sudokuBoard);
 
       // Assert
-      expect(isValid).toBe(false);
+      expect(difficulty).toBe("medium");
+    });
+    it("should validate the hard board", () => {
+      //Arrange
+      const sudokuBoard = [...HARD_SUDOKU_BOARD_FOR_TEST];
+
+      //Act
+      const { difficulty } = analyze(sudokuBoard);
+
+      // Assert
+      expect(difficulty).toBe("hard");
+    });
+    it("should validate the expert board", () => {
+      //Arrange
+      const sudokuBoard = [...EXPERT_SUDOKU_BOARD_FOR_TEST];
+
+      //Act
+      const { difficulty } = analyze(sudokuBoard);
+
+      // Assert
+      expect(difficulty).toBe("expert");
+    });
+    it("should validate the master board", () => {
+      //Arrange
+      const sudokuBoard = [...MASTER_SUDOKU_BOARD_FOR_TEST];
+
+      //Act
+      const { difficulty } = analyze(sudokuBoard);
+
+      // Assert
+      expect(difficulty).toBe("master");
     });
   });
 });
