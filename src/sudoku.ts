@@ -19,6 +19,7 @@ import {
   House,
   AnalyzeData,
   SolveType,
+  Difficulty,
 } from "./types";
 
 // Importing utility functions
@@ -119,16 +120,13 @@ export function createSudokuInstance(options: Options = {}) {
     const alreadyEnhanced = board[0] !== null && typeof board[0] === "object";
 
     if (!alreadyEnhanced) {
-      //enhance board to handle candidates, and possibly other params
-      board = new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, index) => {
-        const value =
-          typeof initBoard?.[index] === "undefined" ? null : initBoard[index];
+      // Enhance board to handle candidates and possibly other params
+      board = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, index) => {
+        const value = initBoard?.[index] ?? null;
         const candidates =
-          value == null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice();
-        return {
-          value,
-          candidates,
-        };
+          value == null ? [...CANDIDATES] : [...NULL_CANDIDATE_LIST];
+
+        return { value, candidates };
       });
     }
   };
@@ -140,22 +138,18 @@ export function createSudokuInstance(options: Options = {}) {
   ) => {
     const cellsUpdated = [];
     for (let i = 0; i < cells.length; i++) {
-      const c = board[cells[i]].candidates;
+      const cellCandidates = board[cells[i]].candidates;
 
       for (let j = 0; j < candidates.length; j++) {
         const candidate = candidates[j];
         //-1 because candidate '1' is at index 0 etc.
-        if (c[Number(candidate) - 1] !== null) {
-          c[Number(candidate) - 1] = null; //NOTE: also deletes them from board variable
+        if (candidate && cellCandidates[candidate - 1] !== null) {
+          cellCandidates[candidate - 1] = null; //NOTE: also deletes them from board variable
           cellsUpdated.push(cells[i]); //will push same cell multiple times
         }
       }
     }
     return cellsUpdated;
-  };
-
-  const resetBoardVariables = () => {
-    usedStrategies = [];
   };
 
   // Function to reset the board variables
@@ -304,31 +298,34 @@ export function createSudokuInstance(options: Options = {}) {
   * -----------------------------------------------------------------*/
   function updateCandidatesBasedOnCellsValue() {
     const groupOfHousesLength = GROUP_OF_HOUSES.length;
-    for (let i = 0; i < groupOfHousesLength; i++) {
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        const house = GROUP_OF_HOUSES[i][j];
+
+    for (let houseType = 0; houseType < groupOfHousesLength; houseType++) {
+      for (let houseIndex = 0; houseIndex < BOARD_SIZE; houseIndex++) {
+        const house = GROUP_OF_HOUSES[houseType][houseIndex];
         const candidatesToRemove = getUsedNumbers(house);
-        for (let k = 0; k < BOARD_SIZE; k++) {
-          const cellIndex = house[k];
-          const cell = board[cellIndex];
+
+        for (let cellIndex = 0; cellIndex < BOARD_SIZE; cellIndex++) {
+          const cell = board[house[cellIndex]];
           cell.candidates = cell.candidates.filter(
             (candidate) => !candidatesToRemove.includes(candidate),
           );
         }
       }
     }
+
     return false;
   }
 
   const convertInitialBoardToSerializedBoard = (
     _board: Board,
   ): InternalBoard => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, i) => ({
-      value: _board[i] || null,
-      candidates:
-        _board[i] == null ? CANDIDATES.slice() : NULL_CANDIDATE_LIST.slice(),
-    }));
+    return new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, i) => {
+      const value = _board[i] || null;
+      const candidates =
+        value === null ? [...CANDIDATES] : [...NULL_CANDIDATE_LIST];
+
+      return { value, candidates };
+    });
   };
 
   /* singleCandidateValueStrategy
@@ -337,44 +334,41 @@ export function createSudokuInstance(options: Options = {}) {
    * If every other cell in a house already contains a number or can't possibly contain a certain number, then that number must go in the one cell where it's still a candidate.
    * For example, if in a row the number 3 can only be placed in the third cell, then it must go there.
    * -----------------------------------------------------------------*/
-  function singleCandidateValueStrategy(): ReturnType<StrategyFn> {
-    //log("visualElimination");
-    //for each type of house..(hor row / vert row / box)
+  function singleCandidateValueStrategy(): ReturnType<StrategyFn> | false {
     const groupOfHousesLength = GROUP_OF_HOUSES.length;
-    for (let i = 0; i < groupOfHousesLength; i++) {
-      //for each such house
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        const house = GROUP_OF_HOUSES[i][j];
+
+    for (let houseType = 0; houseType < groupOfHousesLength; houseType++) {
+      for (let houseIndex = 0; houseIndex < BOARD_SIZE; houseIndex++) {
+        const house = GROUP_OF_HOUSES[houseType][houseIndex];
         const digits = getRemainingNumbers(house);
 
-        //for each digit left for that house
-        for (let k = 0; k < digits.length; k++) {
-          const digit = digits[k];
-          const possibleCells = [];
+        for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
+          const digit = digits[digitIndex];
+          const possibleCells: number[] = [];
 
-          //for each cell in house
-          for (let l = 0; l < BOARD_SIZE; l++) {
-            const cell = house[l];
+          for (let cellIndex = 0; cellIndex < BOARD_SIZE; cellIndex++) {
+            const cell = house[cellIndex];
             const boardCell = board[cell];
-            //if the digit only appears as a candidate in one slot, that's where it has to go
+
             if (contains(boardCell.candidates, digit)) {
               possibleCells.push(cell);
-              if (possibleCells.length > 1) break; //no we can't tell anything in this case
+
+              if (possibleCells.length > 1) {
+                break; // we can't determine anything in this case
+              }
             }
           }
 
           if (possibleCells.length === 1) {
             const cellIndex = possibleCells[0];
+            board = addValueToCellIndex(board, cellIndex, digit);
 
-            //log("only slot where "+digit+" appears in house. ");
-
-            board = addValueToCellIndex(board, cellIndex, digit); //does not update UI
-
-            return [cellIndex]; //one step at the time
+            return [cellIndex]; // one step at a time
           }
         }
       }
     }
+
     return false;
   }
 
@@ -383,29 +377,35 @@ export function createSudokuInstance(options: Options = {}) {
    * Looks for cells with only one candidate
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function singleCandidateCellStrategy(): ReturnType<StrategyFn> {
-    //before we start with candidate strategies, we need to update candidates from last round:
-
-    for (let i = 0; i < board.length; i++) {
-      const cell = board[i];
+  function singleCandidateCellStrategy(): ReturnType<StrategyFn> | false {
+    for (let cellIndex = 0; cellIndex < board.length; cellIndex++) {
+      const cell = board[cellIndex];
       const candidates = cell.candidates;
 
-      //for each candidate for that cell
-      const possibleCandidates = [];
-      for (let j = 0; j < candidates.length; j++) {
-        if (candidates[j] !== null) possibleCandidates.push(candidates[j]);
-        if (possibleCandidates.length > 1) break; //can't find answer here
+      const possibleCandidates: CellValue[] = [];
+      for (
+        let candidateIndex = 0;
+        candidateIndex < candidates.length;
+        candidateIndex++
+      ) {
+        if (candidates[candidateIndex] !== null) {
+          possibleCandidates.push(candidates[candidateIndex]);
+        }
+
+        if (possibleCandidates.length > 1) {
+          break; // can't find answer here
+        }
       }
+
       if (possibleCandidates.length === 1) {
         const digit = possibleCandidates[0];
 
-        //log("only one candidate in cell: "+digit+" in house. ");
+        board = addValueToCellIndex(board, cellIndex, digit);
 
-        board = addValueToCellIndex(board, i, digit); //does not update UI
-
-        return [i]; //one step at the time
+        return [cellIndex]; // one step at a time
       }
     }
+
     return false;
   }
 
@@ -413,34 +413,25 @@ export function createSudokuInstance(options: Options = {}) {
    * --------------
    * This strategy is used when a certain number appears only in a single row or column within a box. That means this number can be eliminated from the other cells in that row or column that are not in this box. For example, if in a box the number 4 only appears in the cells of the first row, then the number 4 can be removed from the rest of the cells in the first row that are not in this box.
    * -----------------------------------------------------------------*/
-  function pointingEliminationStrategy() {
-    //for each type of house..(hor row / vert row / box)
+  function pointingEliminationStrategy(): ReturnType<StrategyFn> | false {
     const groupOfHousesLength = GROUP_OF_HOUSES.length;
-    for (let a = 0; a < groupOfHousesLength; a++) {
-      const houseType = a;
 
-      for (let i = 0; i < BOARD_SIZE; i++) {
-        const house = GROUP_OF_HOUSES[houseType][i];
-
-        //for each digit left for this house
+    for (let houseType = 0; houseType < groupOfHousesLength; houseType++) {
+      for (let houseIndex = 0; houseIndex < BOARD_SIZE; houseIndex++) {
+        const house = GROUP_OF_HOUSES[houseType][houseIndex];
         const digits = getRemainingNumbers(house);
-        for (let j = 0; j < digits.length; j++) {
-          const digit = digits[j];
-          //check if digit (candidate) only appears in one row (if checking boxes),
-          //, or only in one box (if checking rows)
 
-          let sameAltHouse = true; //row if checking box, and vice versa
+        for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
+          const digit = digits[digitIndex];
+
+          let sameAltHouse = true;
           let houseId = -1;
-          //when point checking from box, need to compare both kind of rows
-          //that box cells are also part of, so use houseTwoId as well
           let houseTwoId = -1;
           let sameAltTwoHouse = true;
-          const cellsWithCandidate = [];
-          //let cellDistance = null;
+          const cellsWithCandidate: number[] = [];
 
-          //for each cell
-          for (let k = 0; k < house.length; k++) {
-            const cell = house[k];
+          for (let cellIndex = 0; cellIndex < house.length; cellIndex++) {
+            const cell = house[cellIndex];
 
             if (contains(board[cell].candidates, digit)) {
               const cellHouses = housesWithCell(cell);
@@ -448,8 +439,6 @@ export function createSudokuInstance(options: Options = {}) {
                 houseType === 2 ? cellHouses[0] : cellHouses[2];
               const newHouseTwoId =
                 houseType === 2 ? cellHouses[1] : cellHouses[2];
-
-              //if(cellsWithCandidate.length > 0){ //why twice the same?
 
               if (cellsWithCandidate.length > 0) {
                 if (newHouseId !== houseId) {
@@ -459,161 +448,136 @@ export function createSudokuInstance(options: Options = {}) {
                   sameAltTwoHouse = false;
                 }
                 if (sameAltHouse === false && sameAltTwoHouse === false) {
-                  break; //not in same altHouse (box/row)
+                  break; //not in the same altHouse (box/row)
                 }
               }
-              //}
+
               houseId = newHouseId;
               houseTwoId = newHouseTwoId;
               cellsWithCandidate.push(cell);
             }
           }
+
           if (
-            (sameAltHouse === true || sameAltTwoHouse === true) &&
+            (sameAltHouse || sameAltTwoHouse) &&
             cellsWithCandidate.length > 0
           ) {
-            //log("sameAltHouse..");
-            //we still need to check that this actually eliminates something, i.e. these possible cells can't be only in house
+            const altHouseType = houseType === 2 ? (sameAltHouse ? 0 : 1) : 2;
+            const altHouse =
+              GROUP_OF_HOUSES[altHouseType][
+                housesWithCell(cellsWithCandidate[0])[altHouseType]
+              ];
+            const cellsEffected: number[] = [];
 
-            //first figure out what kind of house we are talking about..
-            const h = housesWithCell(cellsWithCandidate[0]);
-            let altHouseType = 2;
-            if (houseType === 2) {
-              if (sameAltHouse) altHouseType = 0;
-              else altHouseType = 1;
-            }
-
-            const altHouse = GROUP_OF_HOUSES[altHouseType][h[altHouseType]];
-            const cellsEffected = [];
-
-            //log("groupOfHouses["+houseType+"]["+h[houseType]+"].length: "+groupOfHouses[houseType][h[houseType]].length);
-
-            //need to remove cellsWithCandidate - from cells to remove from
             for (let x = 0; x < altHouse.length; x++) {
               if (!cellsWithCandidate.includes(altHouse[x])) {
                 cellsEffected.push(altHouse[x]);
               }
             }
-            //log("groupOfHouses["+houseType+"]["+h[houseType]+"].length: "+groupOfHouses[houseType][h[houseType]].length);
 
-            //remove all candidates on altHouse, outside of house
             const cellsUpdated = removeCandidatesFromMultipleCells(
               cellsEffected,
               [digit],
             );
 
             if (cellsUpdated.length > 0) {
-              // log("pointing: digit "+digit+", from houseType: "+houseType);
-
-              //return cellsUpdated.concat(cellsWithCandidate);
-              //only return cells where we actually update candidates
               return cellsUpdated;
             }
           }
         }
       }
     }
+
     return false;
   }
 
   /* nakedCandidatesStrategy
    * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
    * -----------------------------------------------------------------*/
-  function nakedCandidatesStrategy(number: number) {
-    let combineInfo: Array<{
-      cell: number;
-      candidates: Array<CellValue>;
-    }> = [];
-    let minIndexes = [-1];
-    //for each type of house..(hor row / vert row / box)
-    const groupOfHousesLength = GROUP_OF_HOUSES.length;
-    for (let i = 0; i < groupOfHousesLength; i++) {
-      //for each such house
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        //log("["+i+"]"+"["+j+"]");
-        const house = GROUP_OF_HOUSES[i][j];
-        if (getRemainingNumbers(house).length <= number)
-          //can't eliminate any candidates
-          continue;
-        combineInfo = []; //{cell: x, candidates: []}, {} ..
-        //combinedCandidates,cellsWithCandidate;
-        minIndexes = [-1];
-        //log("--------------");
-        //log("house: ["+i+"]["+j+"]");
+  type CombineInfo = {
+    cell: number;
+    candidates: Array<CellValue>;
+  };
 
-        //checks every combo of n candidates in house, returns pattern, or false
+  function nakedCandidatesStrategy(
+    number: number,
+  ): ReturnType<StrategyFn> | false {
+    let combineInfo: Array<CombineInfo> = [];
+    let minIndexes = [-1];
+
+    const groupOfHousesLength = GROUP_OF_HOUSES.length;
+
+    for (let i = 0; i < groupOfHousesLength; i++) {
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        const house = GROUP_OF_HOUSES[i][j];
+
+        if (getRemainingNumbers(house).length <= number) {
+          continue;
+        }
+
+        combineInfo = [];
+        minIndexes = [-1];
+
         const result = checkCombinedCandidates(house, 0);
-        if (result !== false) return result;
+
+        if (result !== false) {
+          return result;
+        }
       }
     }
-    return false; //pattern not found
+
+    return false;
 
     function checkCombinedCandidates(
       house: House,
       startIndex: number,
-    ): ReturnType<StrategyFn> {
-      //log("startIndex: "+startIndex);
+    ): ReturnType<StrategyFn> | false {
       for (
         let i = Math.max(startIndex, minIndexes[startIndex]);
         i < BOARD_SIZE - number + startIndex;
         i++
       ) {
-        //log(i);
-
-        //never check this cell again, in this loop
         minIndexes[startIndex] = i + 1;
-        //or in a this loop deeper down in recursions
         minIndexes[startIndex + 1] = i + 1;
 
-        //if(startIndex === 0){
-        //	combinedCandidates = [];
-        //	cellsWithCandidate = []; //reset
-        //}
         const cell = house[i];
         const cellCandidates = getRemainingCandidates(cell);
 
-        if (cellCandidates.length === 0 || cellCandidates.length > number)
+        if (cellCandidates.length === 0 || cellCandidates.length > number) {
           continue;
+        }
 
-        //try adding this cell and it's cellCandidates,
-        //but first need to check that that doesn't make (unique) amount of
-        //candidates in combineInfo > n
-
-        //if this is the first item we add, we don't need this check (above one is enough)
         if (combineInfo.length > 0) {
-          const temp = cellCandidates.slice();
+          const temp = [...cellCandidates];
+
           for (let a = 0; a < combineInfo.length; a++) {
             const candidates = combineInfo[a].candidates || [];
             for (let b = 0; b < candidates.length; b++) {
-              if (!contains(temp, candidates[b])) temp.push(candidates[b]);
+              if (!temp.includes(candidates[b])) {
+                temp.push(candidates[b]);
+              }
             }
           }
+
           if (temp.length > number) {
-            continue; //combined candidates spread over > n cells, won't work
+            continue;
           }
         }
 
         combineInfo.push({ cell, candidates: cellCandidates });
 
         if (startIndex < number - 1) {
-          //still need to go deeper into combo
           const result = checkCombinedCandidates(house, startIndex + 1);
-          //when we come back, check if that's because we found answer.
-          //if so, return with it, otherwise, keep looking
-          if (result !== false) return result;
+
+          if (result !== false) {
+            return result;
+          }
         }
 
-        //check if we match our pattern
-        //if we have managed to combine n-1 cells,
-        //(we already know that combinedCandidates is > n)
-        //then we found a match!
         if (combineInfo.length === number) {
-          //now we need to check whether this eliminates any candidates
+          const cellsWithCandidates: number[] = [];
+          let combinedCandidates: Array<CellValue> = [];
 
-          //now we need to check whether this eliminates any candidates
-
-          const cellsWithCandidates = [];
-          let combinedCandidates: Array<CellValue> = []; //not unique either..
           for (let x = 0; x < combineInfo.length; x++) {
             cellsWithCandidates.push(combineInfo[x].cell);
             combinedCandidates = combinedCandidates.concat(
@@ -621,39 +585,27 @@ export function createSudokuInstance(options: Options = {}) {
             );
           }
 
-          //get all cells in house EXCEPT cellsWithCandidates
-          const cellsEffected = [];
-          for (let y = 0; y < BOARD_SIZE; y++) {
-            if (!contains(cellsWithCandidates, house[y])) {
-              cellsEffected.push(house[y]);
-            }
-          }
+          const cellsEffected = house.filter(
+            (cell) => !cellsWithCandidates.includes(cell),
+          );
 
-          //remove all candidates on house, except the on cells matched in pattern
           const cellsUpdated = removeCandidatesFromMultipleCells(
             cellsEffected,
             combinedCandidates,
           );
 
-          //if it does remove candidates, we're succeeded!
           if (cellsUpdated.length > 0) {
-            //log("nakedCandidates: ");
-            //log(combinedCandidates);
-
-            //return cellsWithCandidates.concat(cellsUpdated);
-
-            //return cells we actually update, duplicates removed
-            return uniqueArray(cellsUpdated);
+            return uniqueArray(cellsWithCandidates.concat(cellsUpdated));
           }
         }
       }
+
       if (startIndex > 0) {
-        //if we added a value to our combo check, but failed to find pattern, we now need drop that value and go back up in chain and continue to check..
         if (combineInfo.length > startIndex - 1) {
-          //log("nakedCans: need to pop last added values..");
           combineInfo.pop();
         }
       }
+
       return false;
     }
   }
@@ -930,13 +882,21 @@ export function createSudokuInstance(options: Options = {}) {
     }
   };
 
+  function isValidAndEasyEnough(analysis: AnalyzeData, difficulty: Difficulty) {
+    return (
+      analysis.isValid &&
+      analysis.difficulty &&
+      isEasyEnough(difficulty, analysis.difficulty)
+    );
+  }
   // Function to prepare the game board
   const prepareGameBoard = () => {
     const cells = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
     let removalCount = getRemovalCountBasedOnDifficulty(difficulty);
+
     while (removalCount > 0 && cells.length > 0) {
-      const randIndex = Math.round(Math.random() * (cells.length - 1));
-      const [cellIndex] = cells.splice(randIndex, 1);
+      const randIndex = Math.floor(Math.random() * cells.length);
+      const cellIndex = cells.splice(randIndex, 1)[0];
       const cellValue = board[cellIndex].value;
 
       // Remove value from this cell
@@ -945,11 +905,8 @@ export function createSudokuInstance(options: Options = {}) {
       resetCandidates();
 
       const boardAnalysis = analyzeBoard();
-      if (
-        boardAnalysis.isValid &&
-        boardAnalysis.difficulty &&
-        isEasyEnough(difficulty, boardAnalysis.difficulty)
-      ) {
+
+      if (isValidAndEasyEnough(boardAnalysis, difficulty)) {
         removalCount--;
       } else {
         // Reset - don't dig this cell
@@ -961,42 +918,45 @@ export function createSudokuInstance(options: Options = {}) {
   // Initialization and public methods
 
   // Function to analyze the current state of the board
+  function filterAndMapStrategies(
+    strategies: Array<Strategy>,
+    usedStrategies: Array<number>,
+  ) {
+    return strategies
+      .map((strategy, i) =>
+        usedStrategies[i] !== undefined
+          ? { title: strategy.title, freq: usedStrategies[i] }
+          : null,
+      )
+      .filter(Boolean);
+  }
   function analyzeBoard() {
     const usedStrategiesClone = [...usedStrategies];
     const boardClone = JSON.parse(JSON.stringify(board));
 
-    let canContinue: boolean | undefined = true;
-    do {
-      canContinue = applySolvingStrategies({
-        gradingMode: true,
-        solveMode: SOLVE_MODE_ALL,
-      });
-    } while (canContinue);
+    function restoreOriginalState() {
+      usedStrategies = usedStrategiesClone;
+      board = boardClone;
+    }
+
+    while (
+      applySolvingStrategies({ gradingMode: true, solveMode: SOLVE_MODE_ALL })
+    ) {
+      // Continue applying solving strategies until no more can be applied
+    }
 
     const data: AnalyzeData = {
       isValid: isBoardFinished(board),
-      usedStrategies: strategies
-        .map((strategy, i) => {
-          if (typeof usedStrategies[i] !== "undefined") {
-            return {
-              title: strategy.title,
-              freq: usedStrategies[i],
-            };
-          }
-          return null;
-        })
-        .filter(Boolean),
+      usedStrategies: filterAndMapStrategies(strategies, usedStrategies),
     };
 
-    if (isBoardFinished(board)) {
+    if (data.isValid) {
       const boardDiff = calculateBoardDifficulty(usedStrategies, strategies);
       data.difficulty = boardDiff.difficulty;
       data.score = boardDiff.score;
     }
 
-    resetBoardVariables();
-    usedStrategies = usedStrategiesClone;
-    board = boardClone;
+    restoreOriginalState();
 
     return data;
   }
@@ -1005,41 +965,45 @@ export function createSudokuInstance(options: Options = {}) {
   function generateBoard(): Board {
     generateBoardAnswerRecursively(0);
 
-    // attempt one - save the answer, and try digging multiple times.
     const boardAnswer = board.slice();
 
-    let boardTooEasy = true;
-    while (boardTooEasy) {
+    function isBoardTooEasy() {
       prepareGameBoard();
       const data = analyzeBoard();
-      if (data.difficulty && isHardEnough(difficulty, data.difficulty)) {
-        boardTooEasy = false;
-      } else {
-        board = boardAnswer;
-      }
+      return !(data.difficulty && isHardEnough(difficulty, data.difficulty));
     }
+
+    function restoreBoardAnswer() {
+      board = boardAnswer.slice();
+    }
+
+    while (isBoardTooEasy()) {
+      restoreBoardAnswer();
+    }
+
     updateCandidatesBasedOnCellsValue();
     return getBoard();
   }
 
   const solveAll = (): Board => {
-    let canContinue: boolean | undefined = true;
-    while (canContinue) {
-      canContinue = applySolvingStrategies({ solveMode: SOLVE_MODE_ALL });
+    while (applySolvingStrategies({ solveMode: SOLVE_MODE_ALL })) {
+      // Continue looping until no more solving strategies can be applied
     }
     return getBoard();
   };
 
   const solveStep = (): Board => {
-    const _board = getBoard().slice();
+    const initialBoard = getBoard().slice();
+
     applySolvingStrategies({ solveMode: SOLVE_MODE_STEP });
-    if (
-      !isBoardFinished(board) &&
-      _board.filter(Boolean).length ===
-        getBoard().slice().filter(Boolean).length
-    ) {
+
+    if (!isBoardFinished(board) && areBoardsEqual(initialBoard, getBoard())) {
       solveStep();
     }
+    function areBoardsEqual(board1: Board, board2: Board) {
+      return board1.filter(Boolean).length === board2.filter(Boolean).length;
+    }
+
     return getBoard();
   };
 
