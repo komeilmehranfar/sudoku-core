@@ -12,21 +12,23 @@ describe("sudoku-core", () => {
     it("should generate a valid easy difficulty board", () => {
       //Arrange
       const sudokuBoard = generate("easy");
-
       //Act
       const data = analyze(sudokuBoard);
 
       // Assert
       expect(data.difficulty).toBe("easy");
+      expect(sudokuBoard.filter(Boolean).length).toBe(40);
     });
     it("should generate a valid medium difficulty board", () => {
       //Arrange
       const sudokuBoard = generate("medium");
+
       //Act
       const data = analyze(sudokuBoard);
 
       // Assert
       expect(data.difficulty).toBe("medium");
+      expect(sudokuBoard.filter(Boolean).length).toBe(30);
     });
     it("should generate a valid hard difficulty board", () => {
       //Arrange
@@ -94,6 +96,17 @@ describe("sudoku-core", () => {
     });
   });
   describe("analyze method", () => {
+    it("should invalidate the wrong board", () => {
+      //Arrange
+      const sudokuBoard = [1];
+
+      //Act
+      const { difficulty, isValid } = analyze(sudokuBoard);
+
+      // Assert
+      expect(difficulty).toBe(undefined);
+      expect(isValid).toBe(false);
+    });
     it("should validate the easy board", () => {
       //Arrange
       const sudokuBoard = [...EASY_SUDOKU_BOARD_FOR_TEST];
