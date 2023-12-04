@@ -1,6 +1,8 @@
 import { createSudokuInstance } from "./sudoku";
 import { AnalyzeData, Board, Difficulty } from "./types";
 
+export { type AnalyzeData, type Board, type Difficulty };
+
 export function generate(difficulty: Difficulty): Board {
   const { getBoard } = createSudokuInstance({ difficulty });
   return getBoard();
