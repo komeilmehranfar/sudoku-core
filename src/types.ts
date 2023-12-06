@@ -21,24 +21,33 @@ export type Cell = {
   invalidCandidates?: Array<CellValue>;
 };
 export type InternalBoard = Array<Cell>;
-export type StrategyFn = () => boolean | Array<number> | -1;
+
+export type StrategyFn = () =>
+  | boolean
+  | Array<{ index: number; eliminatedCandidate?: number; filledValue: number }>
+  | -1;
 export interface Strategy {
   title: string;
   score: number;
   fn: StrategyFn;
   postFn?: () => void;
+  type: "value" | "elimination";
 }
 
+export interface Update {
+  index: number;
+  eliminatedCandidate?: number;
+  filledValue: number;
+}
+export interface SolvingStep {
+  strategy: string;
+  updates: Array<Update>;
+  type: "value" | "elimination";
+}
 export interface Options {
   onError?: (args: { message: string }) => void;
   onFinish?: (args: { difficulty: Difficulty; score: number }) => void;
-  onUpdate?: ({
-    strategy,
-    updatedIndexes,
-  }: {
-    strategy: string;
-    updatedIndexes: Array<number>;
-  }) => void;
+  onUpdate?: ({ strategy, updates, type }: SolvingStep) => void;
   initBoard?: Board;
   difficulty?: Difficulty;
 }

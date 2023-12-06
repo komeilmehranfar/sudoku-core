@@ -1,8 +1,6 @@
 // Importing necessary constants
 import {
   DIFFICULTY_MEDIUM,
-  SOLVE_MODE_STEP,
-  SOLVE_MODE_ALL,
   BOARD_SIZE,
   CANDIDATES,
   NULL_CANDIDATE_LIST,
@@ -18,8 +16,8 @@ import {
   Options,
   House,
   AnalyzeData,
-  SolveType,
   Difficulty,
+  Update,
 } from "./types";
 
 // Importing utility functions
@@ -33,7 +31,6 @@ import {
   isBoardFinished,
   isEasyEnough,
   isHardEnough,
-  uniqueArray,
 } from "./utils";
 
 // Generating list of all houses (rows, columns, and boxes) in the sudoku board
@@ -57,61 +54,71 @@ export function createSudokuInstance(options: Options = {}) {
   // Define different strategies to solve the Sudoku along with their scores
   const strategies: Array<Strategy> = [
     {
-      title: "Single Remaining Cell Strategy",
-      fn: singleRemainingCellStrategy,
+      title: "Open Singles Strategy",
+      fn: openSinglesStrategy,
       score: 0.1,
       postFn: updateCandidatesBasedOnCellsValue,
+      type: "value",
     },
     {
-      title: "Single Candidate Cell Strategy",
-      fn: singleCandidateCellStrategy,
+      title: "Visual Elimination Strategy",
+      fn: visualEliminationStrategy,
       score: 9,
       postFn: updateCandidatesBasedOnCellsValue,
+      type: "value",
     },
     {
-      title: "Single Candidate Value Strategy",
-      fn: singleCandidateValueStrategy,
+      title: "Single Candidate Strategy",
+      fn: singleCandidateStrategy,
       score: 8,
       postFn: updateCandidatesBasedOnCellsValue,
+      type: "value",
     },
     {
       title: "Naked Pair Strategy",
       fn: nakedPairStrategy,
       score: 50,
+      type: "elimination",
     },
     {
       title: "Pointing Elimination Strategy",
       fn: pointingEliminationStrategy,
       score: 80,
+      type: "elimination",
     },
     //harder for human to spot
     {
       title: "Hidden Pair Strategy",
       fn: hiddenPairStrategy,
       score: 90,
+      type: "elimination",
     },
     {
       title: "Naked Triplet Strategy",
       fn: nakedTripletStrategy,
       score: 100,
+      type: "elimination",
     },
     //never gets used unless above strategies are turned off?
     {
       title: "Hidden Triplet Strategy",
       fn: hiddenTripletStrategy,
       score: 140,
+      type: "elimination",
     },
     //never gets used unless above strategies are turned off?
     {
       title: "Naked Quadruple Strategy",
       fn: nakedQuadrupleStrategy,
       score: 150,
+      type: "elimination",
     },
     //never gets used unless above strategies are turned off?
     {
       title: "Hidden Quadruple Strategy",
       fn: hiddenQuadrupleStrategy,
       score: 280,
+      type: "elimination",
     },
   ];
 
@@ -135,7 +142,7 @@ export function createSudokuInstance(options: Options = {}) {
   const removeCandidatesFromMultipleCells = (
     cells: Array<number>,
     candidates: Array<CellValue>,
-  ) => {
+  ): Array<{ index: number; eliminatedCandidate: number }> => {
     const cellsUpdated = [];
     for (let i = 0; i < cells.length; i++) {
       const cellCandidates = board[cells[i]].candidates;
@@ -145,7 +152,10 @@ export function createSudokuInstance(options: Options = {}) {
         //-1 because candidate '1' is at index 0 etc.
         if (candidate && cellCandidates[candidate - 1] !== null) {
           cellCandidates[candidate - 1] = null; //NOTE: also deletes them from board variable
-          cellsUpdated.push(cells[i]); //will push same cell multiple times
+          cellsUpdated.push({
+            index: cells[i],
+            eliminatedCandidate: candidate,
+          }); //will push same cell multiple times
         }
       }
     }
@@ -232,13 +242,13 @@ export function createSudokuInstance(options: Options = {}) {
 
   // Various strategies to solve the Sudoku are defined here
 
-  /* singleRemainingCellStrategy
+  /* openSinglesStrategy
    * --------------
    * This is the simplest strategy. If there's only one empty cell in a row, column, or box (these are all "houses"), the number that goes into that cell has to be the one number that isn't elsewhere in that house.
    * For instance, if a row has the numbers 1 through 8, then the last cell in that row must be 9.
    * -----------------------------------------------------------------*/
 
-  function singleRemainingCellStrategy(): ReturnType<StrategyFn> {
+  function openSinglesStrategy(): ReturnType<StrategyFn> {
     const groupOfHouses = GROUP_OF_HOUSES;
 
     for (let i = 0; i < groupOfHouses.length; i++) {
@@ -287,7 +297,7 @@ export function createSudokuInstance(options: Options = {}) {
     }
 
     board = addValueToCellIndex(board, emptyCell.cellIndex, value[0]); //does not update UI
-    return [emptyCell.cellIndex];
+    return [{ index: emptyCell.cellIndex, filledValue: value[0] }];
   }
 
   /* updateCandidatesBasedOnCellsValue
@@ -328,13 +338,13 @@ export function createSudokuInstance(options: Options = {}) {
     });
   };
 
-  /* singleCandidateValueStrategy
+  /* singleCandidateStrategy
    * --------------
    * This strategy looks at houses where a number only appears as a candidate in one cell.
    * If every other cell in a house already contains a number or can't possibly contain a certain number, then that number must go in the one cell where it's still a candidate.
    * For example, if in a row the number 3 can only be placed in the third cell, then it must go there.
    * -----------------------------------------------------------------*/
-  function singleCandidateValueStrategy(): ReturnType<StrategyFn> | false {
+  function singleCandidateStrategy(): ReturnType<StrategyFn> | false {
     const groupOfHousesLength = GROUP_OF_HOUSES.length;
 
     for (let houseType = 0; houseType < groupOfHousesLength; houseType++) {
@@ -363,7 +373,7 @@ export function createSudokuInstance(options: Options = {}) {
             const cellIndex = possibleCells[0];
             board = addValueToCellIndex(board, cellIndex, digit);
 
-            return [cellIndex]; // one step at a time
+            return [{ index: cellIndex, filledValue: digit }]; // one step at a time
           }
         }
       }
@@ -372,12 +382,12 @@ export function createSudokuInstance(options: Options = {}) {
     return false;
   }
 
-  /* singleCandidateCellStrategy
+  /* visualEliminationStrategy
    * --------------
    * Looks for cells with only one candidate
    * -- returns effectedCells - the updated cell(s), or false
    * -----------------------------------------------------------------*/
-  function singleCandidateCellStrategy(): ReturnType<StrategyFn> | false {
+  function visualEliminationStrategy(): ReturnType<StrategyFn> | false {
     for (let cellIndex = 0; cellIndex < board.length; cellIndex++) {
       const cell = board[cellIndex];
       const candidates = cell.candidates;
@@ -402,7 +412,7 @@ export function createSudokuInstance(options: Options = {}) {
 
         board = addValueToCellIndex(board, cellIndex, digit);
 
-        return [cellIndex]; // one step at a time
+        return [{ index: cellIndex, filledValue: digit! }]; // one step at a time
       }
     }
 
@@ -481,7 +491,7 @@ export function createSudokuInstance(options: Options = {}) {
             );
 
             if (cellsUpdated.length > 0) {
-              return cellsUpdated;
+              return cellsUpdated as Update[];
             }
           }
         }
@@ -595,7 +605,7 @@ export function createSudokuInstance(options: Options = {}) {
           );
 
           if (cellsUpdated.length > 0) {
-            return uniqueArray(cellsWithCandidates.concat(cellsUpdated));
+            return cellsUpdated as Update[];
           }
         }
       }
@@ -646,7 +656,7 @@ export function createSudokuInstance(options: Options = {}) {
     function checkLockedCandidates(
       house: House,
       startIndex: number,
-    ): number[] | boolean {
+    ): Update[] | boolean {
       //log("startIndex: "+startIndex);
       for (
         let i = Math.max(startIndex, minIndexes[startIndex]);
@@ -729,7 +739,7 @@ export function createSudokuInstance(options: Options = {}) {
             //log(combinedCandidates);
 
             //filter out duplicates
-            return uniqueArray(cellsWithCandidates);
+            return cellsUpdated as Update[];
           }
         }
       }
@@ -789,12 +799,10 @@ export function createSudokuInstance(options: Options = {}) {
   const applySolvingStrategies = ({
     strategyIndex = 0,
     gradingMode = false,
-    solveMode = SOLVE_MODE_ALL,
   }: {
     strategyIndex?: number;
     gradingMode?: boolean;
-    solveMode?: SolveType;
-  } = {}): boolean | undefined => {
+  } = {}): boolean | "elimination" => {
     if (isBoardFinished(board)) {
       if (!gradingMode) {
         onFinish?.(calculateBoardDifficulty(usedStrategies, strategies));
@@ -802,7 +810,8 @@ export function createSudokuInstance(options: Options = {}) {
       return false;
     }
 
-    const effectedCells = strategies[strategyIndex].fn();
+    const effectedCells: boolean | -1 | Update[] =
+      strategies[strategyIndex].fn();
     strategies[strategyIndex].postFn?.();
 
     if (effectedCells === false) {
@@ -810,7 +819,6 @@ export function createSudokuInstance(options: Options = {}) {
         return applySolvingStrategies({
           strategyIndex: strategyIndex + 1,
           gradingMode,
-          solveMode,
         });
       } else {
         onError?.({ message: "No More Strategies To Solve The Board" });
@@ -821,17 +829,12 @@ export function createSudokuInstance(options: Options = {}) {
       return false;
     }
 
-    if (solveMode === SOLVE_MODE_STEP) {
-      if (typeof onUpdate === "function") {
-        onUpdate({
-          strategy: strategies[strategyIndex].title,
-          updatedIndexes: effectedCells as Array<number>,
-        });
-      }
-
-      if (isBoardFinished(board)) {
-        onFinish?.(calculateBoardDifficulty(usedStrategies, strategies));
-      }
+    if (!gradingMode) {
+      onUpdate?.({
+        strategy: strategies[strategyIndex].title,
+        updates: effectedCells as Update[],
+        type: strategies[strategyIndex].type,
+      });
     }
 
     if (typeof usedStrategies[strategyIndex] === "undefined") {
@@ -839,7 +842,6 @@ export function createSudokuInstance(options: Options = {}) {
     }
 
     usedStrategies[strategyIndex] += 1;
-
     return true;
   };
 
@@ -867,7 +869,6 @@ export function createSudokuInstance(options: Options = {}) {
     board = addValueToCellIndex(board, previousIndex, null);
     resetCandidates();
     board[cellIndex].invalidCandidates = [];
-
     generateBoardAnswerRecursively(previousIndex);
   };
   const generateBoardAnswerRecursively = (cellIndex: number) => {
@@ -939,9 +940,7 @@ export function createSudokuInstance(options: Options = {}) {
       board = boardClone;
     }
 
-    while (
-      applySolvingStrategies({ gradingMode: true, solveMode: SOLVE_MODE_ALL })
-    ) {
+    while (applySolvingStrategies({ gradingMode: true })) {
       // Continue applying solving strategies until no more can be applied
     }
 
@@ -986,24 +985,9 @@ export function createSudokuInstance(options: Options = {}) {
   }
 
   const solveAll = (): Board => {
-    while (applySolvingStrategies({ solveMode: SOLVE_MODE_ALL })) {
+    while (applySolvingStrategies()) {
       // Continue looping until no more solving strategies can be applied
     }
-    return getBoard();
-  };
-
-  const solveStep = (): Board => {
-    const initialBoard = getBoard().slice();
-
-    applySolvingStrategies({ solveMode: SOLVE_MODE_STEP });
-
-    if (!isBoardFinished(board) && areBoardsEqual(initialBoard, getBoard())) {
-      solveStep();
-    }
-    function areBoardsEqual(board1: Board, board2: Board) {
-      return board1.filter(Boolean).length === board2.filter(Boolean).length;
-    }
-
     return getBoard();
   };
 
@@ -1021,7 +1005,6 @@ export function createSudokuInstance(options: Options = {}) {
 
   return {
     solveAll,
-    solveStep,
     analyzeBoard,
     getBoard,
     generateBoard,

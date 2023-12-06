@@ -1,4 +1,4 @@
-import { generate, analyze, solve, solveStep } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import { generate, analyze, solve } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
   EXPERT_SUDOKU_BOARD_FOR_TEST,
@@ -68,7 +68,7 @@ describe("sudoku-core", () => {
       const sudokuBoard = generate("expert");
 
       //Act
-      const solvedBoard = solve(sudokuBoard);
+      const { board: solvedBoard } = solve(sudokuBoard);
 
       // Assert
       expect(solvedBoard.every((cell) => cell !== null)).toBe(true);
@@ -77,22 +77,21 @@ describe("sudoku-core", () => {
   describe("solveStep method", () => {
     it("should solve one more step", () => {
       //Arrange
-      const sudokuBoard = generate("expert");
+      const sudokuBoard = generate("master");
+      const unfilledCellsLength = sudokuBoard.filter(
+        (cell) => !Boolean(cell),
+      ).length;
 
-      for (let index = 0; index < 81; index++) {
-        //Arrange
-        const boardBeforeLength = sudokuBoard.filter(Boolean).length;
+      //Act
+      const { steps } = solve(sudokuBoard);
 
-        //Act
-        const solvedBoard = solveStep(sudokuBoard);
-
-        // Assert
-        const boardAfterLength = solvedBoard.filter(Boolean).length;
-        expect(
-          boardAfterLength - boardBeforeLength === 1 ||
-            boardBeforeLength === 81,
-        ).toBe(true);
-      }
+      // Assert
+      const stepsFillingCount = steps.reduce(
+        (acc, curr) =>
+          curr.type === "value" ? curr.updates.length + acc : acc,
+        0,
+      );
+      expect(stepsFillingCount).toBe(unfilledCellsLength);
     });
   });
   describe("analyze method", () => {

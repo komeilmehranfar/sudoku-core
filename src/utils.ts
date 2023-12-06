@@ -183,8 +183,8 @@ export const calculateBoardDifficulty = (
     validUsedStrategies.length < 3
       ? DIFFICULTY_EASY
       : validUsedStrategies.length < 4
-      ? DIFFICULTY_MEDIUM
-      : DIFFICULTY_HARD;
+        ? DIFFICULTY_MEDIUM
+        : DIFFICULTY_HARD;
 
   if (totalScore > 750) difficulty = DIFFICULTY_EXPERT;
   if (totalScore > 2000) difficulty = DIFFICULTY_MASTER;
