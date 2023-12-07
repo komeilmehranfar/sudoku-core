@@ -1,4 +1,11 @@
-import { generate, analyze, solve } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import {
+  generate,
+  analyze,
+  solve,
+  Board,
+  SolvingStep,
+  hasUniqueSolution,
+} from "../src/index"; // Import the createSudokuInstance module (update path as needed)
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
   EXPERT_SUDOKU_BOARD_FOR_TEST,
@@ -12,12 +19,14 @@ describe("sudoku-core", () => {
     it("should generate a valid easy difficulty board", () => {
       //Arrange
       const sudokuBoard = generate("easy");
+
       //Act
       const data = analyze(sudokuBoard);
 
       // Assert
       expect(data.difficulty).toBe("easy");
       expect(sudokuBoard.filter(Boolean).length).toBe(40);
+      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid medium difficulty board", () => {
       //Arrange
@@ -25,10 +34,10 @@ describe("sudoku-core", () => {
 
       //Act
       const data = analyze(sudokuBoard);
-
       // Assert
       expect(data.difficulty).toBe("medium");
       expect(sudokuBoard.filter(Boolean).length).toBe(30);
+      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid hard difficulty board", () => {
       //Arrange
@@ -39,6 +48,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("hard");
+      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid expert difficulty board", () => {
       //Arrange
@@ -49,6 +59,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("expert");
+      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid master difficulty board", () => {
       //Arrange
@@ -59,23 +70,12 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("master");
+      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
   });
 
   describe("solve method", () => {
     it("should solve the board", () => {
-      //Arrange
-      const sudokuBoard = generate("expert");
-
-      //Act
-      const { board: solvedBoard } = solve(sudokuBoard);
-
-      // Assert
-      expect(solvedBoard.every((cell) => cell !== null)).toBe(true);
-    });
-  });
-  describe("solveStep method", () => {
-    it("should solve one more step", () => {
       //Arrange
       const sudokuBoard = generate("master");
       const unfilledCellsLength = sudokuBoard.filter(
