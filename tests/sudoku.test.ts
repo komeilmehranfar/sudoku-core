@@ -1,11 +1,4 @@
-import {
-  generate,
-  analyze,
-  solve,
-  Board,
-  SolvingStep,
-  hasUniqueSolution,
-} from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import { generate, analyze, solve, hasUniqueSolution } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
   EXPERT_SUDOKU_BOARD_FOR_TEST,
@@ -53,7 +46,6 @@ describe("sudoku-core", () => {
     it("should generate a valid expert difficulty board", () => {
       //Arrange
       const sudokuBoard = generate("expert");
-
       //Act
       const data = analyze(sudokuBoard);
 
@@ -83,14 +75,16 @@ describe("sudoku-core", () => {
       ).length;
 
       //Act
-      const { steps } = solve(sudokuBoard);
+      const result = solve(sudokuBoard);
+      const steps = result?.steps;
 
       // Assert
-      const stepsFillingCount = steps.reduce(
-        (acc, curr) =>
-          curr.type === "value" ? curr.updates.length + acc : acc,
-        0,
-      );
+      const stepsFillingCount =
+        steps?.reduce(
+          (acc, curr) =>
+            curr.type === "value" ? curr.updates.length + acc : acc,
+          0,
+        ) || 0;
       expect(stepsFillingCount).toBe(unfilledCellsLength);
     });
   });

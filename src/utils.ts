@@ -142,19 +142,12 @@ export const addValueToCellIndex = (
   board: InternalBoard,
   cellIndex: number,
   value: CellValue,
-): InternalBoard => {
-  return board.map((cell, index) =>
-    cellIndex === index
-      ? {
-          ...cell,
-          value: value,
-          candidates:
-            value !== null
-              ? NULL_CANDIDATE_LIST.slice()
-              : cell.candidates.slice(),
-        }
-      : { ...cell, candidates: cell.candidates.slice() },
-  );
+) => {
+  board[cellIndex].value = value;
+  board[cellIndex].candidates =
+    value !== null
+      ? NULL_CANDIDATE_LIST.slice()
+      : board[cellIndex].candidates.slice();
 };
 
 export const getRandomCandidateOfCell = (candidates: Array<CellValue>) => {

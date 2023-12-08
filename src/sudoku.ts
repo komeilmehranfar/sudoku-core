@@ -86,6 +86,7 @@ export function createSudokuInstance(options: Options = {}) {
       score: 80,
       type: "elimination",
     },
+
     //harder for human to spot
     {
       title: "Hidden Pair Strategy",
@@ -99,6 +100,7 @@ export function createSudokuInstance(options: Options = {}) {
       score: 100,
       type: "elimination",
     },
+
     //never gets used unless above strategies are turned off?
     {
       title: "Hidden Triplet Strategy",
@@ -296,7 +298,7 @@ export function createSudokuInstance(options: Options = {}) {
       return -1;
     }
 
-    board = addValueToCellIndex(board, emptyCell.cellIndex, value[0]); //does not update UI
+    addValueToCellIndex(board, emptyCell.cellIndex, value[0]); //does not update UI
     return [{ index: emptyCell.cellIndex, filledValue: value[0] }];
   }
 
@@ -371,7 +373,7 @@ export function createSudokuInstance(options: Options = {}) {
 
           if (possibleCells.length === 1) {
             const cellIndex = possibleCells[0];
-            board = addValueToCellIndex(board, cellIndex, digit);
+            addValueToCellIndex(board, cellIndex, digit);
 
             return [{ index: cellIndex, filledValue: digit }]; // one step at a time
           }
@@ -410,7 +412,7 @@ export function createSudokuInstance(options: Options = {}) {
       if (possibleCandidates.length === 1) {
         const digit = possibleCandidates[0];
 
-        board = addValueToCellIndex(board, cellIndex, digit);
+        addValueToCellIndex(board, cellIndex, digit);
 
         return [{ index: cellIndex, filledValue: digit! }]; // one step at a time
       }
@@ -812,6 +814,7 @@ export function createSudokuInstance(options: Options = {}) {
 
     const effectedCells: boolean | -1 | Update[] =
       strategies[strategyIndex].fn();
+
     strategies[strategyIndex].postFn?.();
 
     if (effectedCells === false) {
@@ -855,7 +858,7 @@ export function createSudokuInstance(options: Options = {}) {
       return false;
     }
     const value = getRandomCandidateOfCell(candidates);
-    board = addValueToCellIndex(board, cellIndex, value);
+    addValueToCellIndex(board, cellIndex, value);
     return true;
   };
 
@@ -866,7 +869,7 @@ export function createSudokuInstance(options: Options = {}) {
 
     board[previousIndex].invalidCandidates?.push(board[previousIndex].value);
 
-    board = addValueToCellIndex(board, previousIndex, null);
+    addValueToCellIndex(board, previousIndex, null);
     resetCandidates();
     board[cellIndex].invalidCandidates = [];
     generateBoardAnswerRecursively(previousIndex);
@@ -894,24 +897,22 @@ export function createSudokuInstance(options: Options = {}) {
   const prepareGameBoard = () => {
     const cells = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
     let removalCount = getRemovalCountBasedOnDifficulty(difficulty);
-
     while (removalCount > 0 && cells.length > 0) {
       const randIndex = Math.floor(Math.random() * cells.length);
       const cellIndex = cells.splice(randIndex, 1)[0];
       const cellValue = board[cellIndex].value;
 
       // Remove value from this cell
-      board = addValueToCellIndex(board, cellIndex, null);
+      addValueToCellIndex(board, cellIndex, null);
       // Reset candidates, only in model.
       resetCandidates();
 
       const boardAnalysis = analyzeBoard();
-
       if (isValidAndEasyEnough(boardAnalysis, difficulty)) {
         removalCount--;
       } else {
         // Reset - don't dig this cell
-        board = addValueToCellIndex(board, cellIndex, cellValue);
+        addValueToCellIndex(board, cellIndex, cellValue);
       }
     }
   };
@@ -990,6 +991,25 @@ export function createSudokuInstance(options: Options = {}) {
     }
     return getBoard();
   };
+  const MAX_ITERATIONS = 30; // Set your desired maximum number of iterations
+
+  const solveStep = (iterationCount: number = 0): Board | false => {
+    if (iterationCount >= MAX_ITERATIONS) {
+      return false;
+    }
+
+    const initialBoard = getBoard().slice();
+    applySolvingStrategies();
+
+    const boardNotChanged =
+      initialBoard.filter(Boolean).length === getBoard().filter(Boolean).length;
+
+    if (!isBoardFinished(board) && boardNotChanged) {
+      return solveStep(iterationCount + 1);
+    }
+
+    return getBoard();
+  };
 
   const getBoard = (): Board => board.map((cell) => cell.value);
 
@@ -1005,6 +1025,7 @@ export function createSudokuInstance(options: Options = {}) {
 
   return {
     solveAll,
+    solveStep,
     analyzeBoard,
     getBoard,
     generateBoard,
