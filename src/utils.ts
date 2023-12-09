@@ -179,7 +179,7 @@ export const calculateBoardDifficulty = (
         : DIFFICULTY_HARD;
 
   if (totalScore > 750) difficulty = DIFFICULTY_EXPERT;
-  if (totalScore > 1200) difficulty = DIFFICULTY_MASTER;
+  if (totalScore > 2000) difficulty = DIFFICULTY_MASTER;
 
   return {
     difficulty,
