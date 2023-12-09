@@ -795,13 +795,13 @@ export function createSudokuInstance(options: Options = {}) {
   // Function to apply the solving strategies in order
   const applySolvingStrategies = ({
     strategyIndex = 0,
-    gradingMode = false,
+    analyzeMode = false,
   }: {
     strategyIndex?: number;
-    gradingMode?: boolean;
+    analyzeMode?: boolean;
   } = {}): false | "elimination" | "value" => {
     if (isBoardFinished(board)) {
-      if (!gradingMode) {
+      if (!analyzeMode) {
         onFinish?.(calculateBoardDifficulty(usedStrategies, strategies));
       }
       return false;
@@ -810,11 +810,12 @@ export function createSudokuInstance(options: Options = {}) {
       strategies[strategyIndex].fn();
 
     strategies[strategyIndex].postFn?.();
+
     if (effectedCells === false) {
       if (strategies.length > strategyIndex + 1) {
         return applySolvingStrategies({
           strategyIndex: strategyIndex + 1,
-          gradingMode,
+          analyzeMode,
         });
       } else {
         onError?.({ message: "No More Strategies To Solve The Board" });
@@ -825,7 +826,7 @@ export function createSudokuInstance(options: Options = {}) {
       return false;
     }
 
-    if (!gradingMode) {
+    if (!analyzeMode) {
       onUpdate?.({
         strategy: strategies[strategyIndex].title,
         updates: effectedCells as Update[],
@@ -881,14 +882,14 @@ export function createSudokuInstance(options: Options = {}) {
 
   function isValidAndEasyEnough(analysis: AnalyzeData, difficulty: Difficulty) {
     return (
-      analysis.isValid &&
+      analysis.hasSolution &&
       analysis.difficulty &&
-      analysis.isUnique &&
+      analysis.hasUniqueSolution &&
       isEasyEnough(difficulty, analysis.difficulty)
     );
   }
   // Function to prepare the game board
-  const prepareGameBoard = (boardAnswer: Board) => {
+  const prepareGameBoard = () => {
     const cells = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
     let removalCount = getRemovalCountBasedOnDifficulty(difficulty);
     while (removalCount > 0 && cells.length > 0) {
@@ -899,7 +900,8 @@ export function createSudokuInstance(options: Options = {}) {
       addValueToCellIndex(board, cellIndex, null);
       // Reset candidates, only in model.
       resetCandidates();
-      const boardAnalysis = analyzeBoard({ boardAnswer });
+      const boardAnalysis = analyzeBoard();
+
       if (isValidAndEasyEnough(boardAnalysis, difficulty)) {
         removalCount--;
       } else {
@@ -924,38 +926,50 @@ export function createSudokuInstance(options: Options = {}) {
       )
       .filter(Boolean);
   }
-  function analyzeBoard({ boardAnswer }: { boardAnswer?: Board } = {}) {
-    const usedStrategiesClone = [...usedStrategies];
-    const boardClone = JSON.parse(JSON.stringify(board));
 
-    function restoreOriginalState() {
-      usedStrategies = usedStrategiesClone;
-      board = boardClone;
-    }
+  function analyzeBoard() {
+    let usedStrategiesClone = usedStrategies.slice();
+    let boardClone = JSON.parse(JSON.stringify(board));
+
     let Continue: boolean | "value" | "elimination" = true;
     while (Continue) {
       Continue = applySolvingStrategies({
         strategyIndex: Continue === "elimination" ? 1 : 0,
-        gradingMode: true,
+        analyzeMode: true,
       });
     }
-
     const data: AnalyzeData = {
-      isValid: isBoardFinished(board),
+      hasSolution: isBoardFinished(board),
+      hasUniqueSolution: false,
       usedStrategies: filterAndMapStrategies(strategies, usedStrategies),
     };
 
-    if (data.isValid) {
+    if (data.hasSolution) {
       const boardDiff = calculateBoardDifficulty(usedStrategies, strategies);
       data.difficulty = boardDiff.difficulty;
       data.score = boardDiff.score;
-      data.isUnique = boardAnswer
-        ? board.every((cell, index) => cell.value === boardAnswer[index])
-        : false;
+    }
+    const boardFinishedWithSolveAll = getBoard();
+    usedStrategies = usedStrategiesClone.slice();
+    board = boardClone;
+
+    usedStrategiesClone = usedStrategies.slice();
+    boardClone = JSON.parse(JSON.stringify(board));
+
+    let solvedBoard: false | Board = [...getBoard()];
+    while (solvedBoard && !solvedBoard.every(Boolean)) {
+      solvedBoard = solveStep({ analyzeMode: true, iterationCount: 0 });
     }
 
-    restoreOriginalState();
-
+    if (data.hasSolution && typeof solvedBoard !== "boolean") {
+      data.hasUniqueSolution =
+        solvedBoard &&
+        solvedBoard.every(
+          (item, index) => item === boardFinishedWithSolveAll[index],
+        );
+    }
+    usedStrategies = usedStrategiesClone.slice();
+    board = boardClone;
     return data;
   }
 
@@ -963,15 +977,12 @@ export function createSudokuInstance(options: Options = {}) {
   function generateBoard(): Board {
     generateBoardAnswerRecursively(0);
 
-    const boardAnswer = JSON.parse(
-      JSON.stringify(board.map((cell) => cell.value)),
-    );
     const slicedBoard = JSON.parse(JSON.stringify(board));
 
     function isBoardTooEasy() {
-      prepareGameBoard(boardAnswer);
+      prepareGameBoard();
       const data = analyzeBoard();
-      if (data.isValid && data.difficulty) {
+      if (data.hasSolution && data.difficulty) {
         return !isHardEnough(difficulty, data.difficulty);
       }
       return true;
@@ -990,21 +1001,26 @@ export function createSudokuInstance(options: Options = {}) {
   }
   const MAX_ITERATIONS = 30; // Set your desired maximum number of iterations
 
-  const solveStep = (iterationCount: number = 0): Board | false => {
+  const solveStep = ({
+    analyzeMode = false,
+    iterationCount = 0,
+  }: {
+    analyzeMode?: boolean;
+    iterationCount?: number;
+  } = {}): Board | false => {
     if (iterationCount >= MAX_ITERATIONS) {
       return false;
     }
 
     const initialBoard = getBoard().slice();
-    applySolvingStrategies();
+    applySolvingStrategies({ analyzeMode });
     const stepSolvedBoard = getBoard().slice();
 
     const boardNotChanged =
       initialBoard.filter(Boolean).length ===
       stepSolvedBoard.filter(Boolean).length;
-
     if (!isBoardFinished(board) && boardNotChanged) {
-      return solveStep(iterationCount + 1);
+      return solveStep({ analyzeMode, iterationCount: iterationCount + 1 });
     }
     board = convertInitialBoardToSerializedBoard(stepSolvedBoard);
     updateCandidatesBasedOnCellsValue();

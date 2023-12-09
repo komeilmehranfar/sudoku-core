@@ -59,8 +59,8 @@ export type House = Array<number>;
 export type Houses = Array<House>;
 
 export type AnalyzeData = {
-  isValid?: boolean;
-  isUnique?: boolean;
+  hasSolution: boolean;
+  hasUniqueSolution: boolean;
   usedStrategies?: ({
     title: string;
     freq: number;

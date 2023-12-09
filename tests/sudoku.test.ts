@@ -5,14 +5,8 @@ import {
   DIFFICULTY_MASTER,
   DIFFICULTY_MEDIUM,
 } from "../src/constants";
-import {
-  generate,
-  analyze,
-  solve,
-  hasUniqueSolution,
-  Difficulty,
-  Board,
-} from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import { generate, analyze, solve, Difficulty, Board } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import { createSudokuInstance } from "../src/sudoku";
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
   EXPERT_SUDOKU_BOARD_FOR_TEST,
@@ -21,6 +15,24 @@ import {
   MEDIUM_SUDOKU_BOARD_FOR_TEST,
 } from "./constants";
 
+function hasUniqueSolution(Board: Board): boolean {
+  const { solveAll } = createSudokuInstance({
+    initBoard: Board,
+  });
+  const solvedBoard = solveAll();
+  if (!solvedBoard) {
+    return false;
+  }
+  const { solveStep, getBoard } = createSudokuInstance({
+    initBoard: Board,
+  });
+  while (getBoard().some((item) => !Boolean(item))) {
+    if (!solveStep()) {
+      return false;
+    }
+  }
+  return solvedBoard.every((item, index) => getBoard()[index] === item);
+}
 describe("sudoku-core", () => {
   describe("generate method", () => {
     it("should generate a valid easy difficulty board", () => {
@@ -118,11 +130,11 @@ describe("sudoku-core", () => {
       const sudokuBoard = [1];
 
       //Act
-      const { difficulty, isValid } = analyze(sudokuBoard);
+      const { difficulty, hasSolution } = analyze(sudokuBoard);
 
       // Assert
       expect(difficulty).toBe(undefined);
-      expect(isValid).toBe(false);
+      expect(hasSolution).toBe(false);
     });
     it("should validate the easy board", () => {
       //Arrange
