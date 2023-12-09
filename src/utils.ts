@@ -128,9 +128,9 @@ export const isHardEnough = (
 export const getRemovalCountBasedOnDifficulty = (difficulty: Difficulty) => {
   switch (difficulty) {
     case DIFFICULTY_EASY:
-      return BOARD_SIZE * BOARD_SIZE - 40;
-    case DIFFICULTY_MEDIUM:
       return BOARD_SIZE * BOARD_SIZE - 30;
+    case DIFFICULTY_MEDIUM:
+      return BOARD_SIZE * BOARD_SIZE - 20;
     default:
       return BOARD_SIZE * BOARD_SIZE - 17;
   }
@@ -144,10 +144,9 @@ export const addValueToCellIndex = (
   value: CellValue,
 ) => {
   board[cellIndex].value = value;
-  board[cellIndex].candidates =
-    value !== null
-      ? NULL_CANDIDATE_LIST.slice()
-      : board[cellIndex].candidates.slice();
+  if (value !== null) {
+    board[cellIndex].candidates = NULL_CANDIDATE_LIST.slice();
+  }
 };
 
 export const getRandomCandidateOfCell = (candidates: Array<CellValue>) => {
@@ -180,7 +179,7 @@ export const calculateBoardDifficulty = (
         : DIFFICULTY_HARD;
 
   if (totalScore > 750) difficulty = DIFFICULTY_EXPERT;
-  if (totalScore > 2000) difficulty = DIFFICULTY_MASTER;
+  if (totalScore > 1200) difficulty = DIFFICULTY_MASTER;
 
   return {
     difficulty,

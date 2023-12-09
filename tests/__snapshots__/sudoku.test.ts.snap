@@ -1,0 +1,3694 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`sudoku-core solve method should solve the easy board 1`] = `
+[
+  3,
+  4,
+  2,
+  1,
+  8,
+  5,
+  7,
+  6,
+  9,
+  1,
+  7,
+  6,
+  9,
+  3,
+  2,
+  5,
+  8,
+  4,
+  5,
+  9,
+  8,
+  6,
+  7,
+  4,
+  1,
+  2,
+  3,
+  8,
+  1,
+  4,
+  2,
+  6,
+  3,
+  9,
+  5,
+  7,
+  7,
+  3,
+  9,
+  5,
+  4,
+  8,
+  2,
+  1,
+  6,
+  6,
+  2,
+  5,
+  7,
+  9,
+  1,
+  3,
+  4,
+  8,
+  9,
+  5,
+  7,
+  4,
+  2,
+  6,
+  8,
+  3,
+  1,
+  4,
+  8,
+  1,
+  3,
+  5,
+  7,
+  6,
+  9,
+  2,
+  2,
+  6,
+  3,
+  8,
+  1,
+  9,
+  4,
+  7,
+  5,
+]
+`;
+
+exports[`sudoku-core solve method should solve the easy board 2`] = `
+[
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 42,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 8,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 4,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 2,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 29,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 35,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 38,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 36,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 11,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 19,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 73,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 9,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 20,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 74,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 41,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 39,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 43,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 53,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 49,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 13,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 17,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 26,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 14,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 12,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 21,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 30,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 31,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 32,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 68,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 54,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 67,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 76,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 70,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 79,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 71,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 63,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 72,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 80,
+      },
+    ],
+  },
+]
+`;
+
+exports[`sudoku-core solve method should solve the expert board 1`] = `
+[
+  2,
+  7,
+  1,
+  5,
+  9,
+  4,
+  6,
+  8,
+  3,
+  8,
+  5,
+  3,
+  1,
+  6,
+  2,
+  4,
+  7,
+  9,
+  9,
+  4,
+  6,
+  3,
+  8,
+  7,
+  5,
+  1,
+  2,
+  5,
+  2,
+  4,
+  9,
+  7,
+  8,
+  1,
+  3,
+  6,
+  1,
+  9,
+  8,
+  2,
+  3,
+  6,
+  7,
+  5,
+  4,
+  6,
+  3,
+  7,
+  4,
+  1,
+  5,
+  2,
+  9,
+  8,
+  3,
+  6,
+  9,
+  7,
+  4,
+  1,
+  8,
+  2,
+  5,
+  4,
+  1,
+  2,
+  8,
+  5,
+  9,
+  3,
+  6,
+  7,
+  7,
+  8,
+  5,
+  6,
+  2,
+  3,
+  9,
+  4,
+  1,
+]
+`;
+
+exports[`sudoku-core solve method should solve the expert board 2`] = `
+[
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 51,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 48,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 52,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 46,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 24,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 3,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 32,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 61,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 58,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 67,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 68,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 69,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 54,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 11,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 77,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 40,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 72,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 74,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 29,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 28,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 27,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 0,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 19,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 44,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 79,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 9,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 17,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 18,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 36,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 37,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 12,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 14,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 26,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 39,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 16,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 16,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 16,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 16,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 16,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 16,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 6,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 6,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 6,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 6,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 1,
+        "index": 60,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 70,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 60,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 6,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 42,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 41,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 13,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 16,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 31,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 35,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 2,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 7,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 20,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 70,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 66,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 64,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 71,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 73,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 80,
+      },
+    ],
+  },
+]
+`;
+
+exports[`sudoku-core solve method should solve the hard board 1`] = `
+[
+  1,
+  7,
+  6,
+  2,
+  8,
+  4,
+  3,
+  5,
+  9,
+  8,
+  3,
+  2,
+  7,
+  9,
+  5,
+  6,
+  4,
+  1,
+  4,
+  5,
+  9,
+  3,
+  1,
+  6,
+  7,
+  8,
+  2,
+  5,
+  9,
+  3,
+  1,
+  7,
+  8,
+  4,
+  2,
+  6,
+  7,
+  4,
+  8,
+  6,
+  2,
+  9,
+  1,
+  3,
+  5,
+  2,
+  6,
+  1,
+  5,
+  4,
+  3,
+  9,
+  7,
+  8,
+  6,
+  1,
+  5,
+  8,
+  3,
+  7,
+  2,
+  9,
+  4,
+  3,
+  8,
+  4,
+  9,
+  6,
+  2,
+  5,
+  1,
+  7,
+  9,
+  2,
+  7,
+  4,
+  5,
+  1,
+  8,
+  6,
+  3,
+]
+`;
+
+exports[`sudoku-core solve method should solve the hard board 2`] = `
+[
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 4,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 39,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 78,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 17,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 26,
+      },
+    ],
+  },
+  {
+    "strategy": "Naked Pair Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 4,
+        "index": 13,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 13,
+      },
+      {
+        "eliminatedCandidate": 4,
+        "index": 67,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 67,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 13,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 21,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 20,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 79,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 15,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 54,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 67,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 28,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 6,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 69,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 56,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 66,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 61,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 51,
+      },
+    ],
+  },
+  {
+    "strategy": "Naked Pair Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 4,
+        "index": 27,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 27,
+      },
+      {
+        "eliminatedCandidate": 4,
+        "index": 29,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 29,
+      },
+      {
+        "eliminatedCandidate": 4,
+        "index": 30,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 30,
+      },
+      {
+        "eliminatedCandidate": 4,
+        "index": 32,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 32,
+      },
+      {
+        "eliminatedCandidate": 4,
+        "index": 34,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 34,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 32,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 50,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 14,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 3,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 16,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 24,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 18,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 33,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 7,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 31,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 49,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 34,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 52,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Naked Pair Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 1,
+        "index": 9,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 9,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 10,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 10,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 11,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 11,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 73,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 10,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 9,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 11,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 36,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 0,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 1,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 37,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 38,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 55,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 47,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 29,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 27,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 30,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 48,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 45,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 63,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 59,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 62,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 68,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 77,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 71,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 65,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 74,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 80,
+      },
+    ],
+  },
+]
+`;
+
+exports[`sudoku-core solve method should solve the master board 1`] = `
+[
+  4,
+  9,
+  2,
+  7,
+  1,
+  5,
+  8,
+  6,
+  3,
+  5,
+  8,
+  3,
+  2,
+  6,
+  4,
+  7,
+  1,
+  9,
+  7,
+  6,
+  1,
+  9,
+  3,
+  8,
+  5,
+  2,
+  4,
+  3,
+  5,
+  4,
+  6,
+  8,
+  7,
+  2,
+  9,
+  1,
+  1,
+  2,
+  6,
+  3,
+  5,
+  9,
+  4,
+  8,
+  7,
+  8,
+  7,
+  9,
+  1,
+  4,
+  2,
+  6,
+  3,
+  5,
+  9,
+  4,
+  7,
+  8,
+  2,
+  1,
+  3,
+  5,
+  6,
+  2,
+  3,
+  5,
+  4,
+  9,
+  6,
+  1,
+  7,
+  8,
+  6,
+  1,
+  8,
+  5,
+  7,
+  3,
+  9,
+  4,
+  2,
+]
+`;
+
+exports[`sudoku-core solve method should solve the master board 2`] = `
+[
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 7,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 1,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 10,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 9,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 12,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 14,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 16,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 19,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 18,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 44,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 35,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 53,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 8,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 26,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 62,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 24,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 33,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 79,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 73,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 78,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 70,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 55,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 60,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 69,
+      },
+    ],
+  },
+  {
+    "strategy": "Naked Pair Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 5,
+        "index": 21,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 21,
+      },
+      {
+        "eliminatedCandidate": 5,
+        "index": 22,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 22,
+      },
+      {
+        "eliminatedCandidate": 5,
+        "index": 23,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Naked Pair Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 21,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 22,
+      },
+      {
+        "eliminatedCandidate": 5,
+        "index": 23,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Naked Pair Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 21,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 22,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 3,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 3,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 8,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 8,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 9,
+        "index": 3,
+      },
+      {
+        "eliminatedCandidate": 9,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 39,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 41,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 48,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 49,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 50,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 39,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 41,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 48,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 49,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 50,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 39,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 41,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 48,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 49,
+      },
+      {
+        "eliminatedCandidate": 7,
+        "index": 50,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 7,
+        "index": 48,
+      },
+    ],
+  },
+  {
+    "strategy": "Pointing Elimination Strategy",
+    "type": "elimination",
+    "updates": [
+      {
+        "eliminatedCandidate": 1,
+        "index": 30,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 31,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 32,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 39,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 41,
+      },
+      {
+        "eliminatedCandidate": 1,
+        "index": 49,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 27,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 37,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 64,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 45,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 72,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 63,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 65,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 67,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 68,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 49,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 47,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 38,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 29,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 48,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 50,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 30,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 59,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 58,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 75,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 3,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 56,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 74,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 76,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 31,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 22,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 21,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 39,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 34,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 32,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 41,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 43,
+      },
+    ],
+  },
+]
+`;
+
+exports[`sudoku-core solve method should solve the medium board 1`] = `
+[
+  7,
+  3,
+  6,
+  9,
+  5,
+  4,
+  8,
+  2,
+  1,
+  2,
+  1,
+  9,
+  3,
+  7,
+  8,
+  5,
+  4,
+  6,
+  5,
+  4,
+  8,
+  1,
+  2,
+  6,
+  7,
+  9,
+  3,
+  6,
+  9,
+  2,
+  8,
+  3,
+  7,
+  4,
+  1,
+  5,
+  4,
+  7,
+  3,
+  5,
+  1,
+  9,
+  2,
+  6,
+  8,
+  1,
+  8,
+  5,
+  6,
+  4,
+  2,
+  9,
+  3,
+  7,
+  8,
+  5,
+  1,
+  2,
+  9,
+  3,
+  6,
+  7,
+  4,
+  9,
+  6,
+  4,
+  7,
+  8,
+  1,
+  3,
+  5,
+  2,
+  3,
+  2,
+  7,
+  4,
+  6,
+  5,
+  1,
+  8,
+  9,
+]
+`;
+
+exports[`sudoku-core solve method should solve the medium board 2`] = `
+[
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 18,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 27,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 41,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 5,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 23,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 4,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 3,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 6,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 13,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 12,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 22,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 30,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 39,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 40,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 49,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 53,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 57,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 66,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 62,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 71,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 24,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 33,
+      },
+    ],
+  },
+  {
+    "strategy": "Single Candidate Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 47,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 56,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 54,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 60,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 55,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 69,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 42,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 38,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 43,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 45,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 72,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 51,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 3,
+        "index": 52,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 78,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 65,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 11,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 16,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 1,
+        "index": 10,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 4,
+        "index": 19,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 25,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 29,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 9,
+        "index": 28,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 7,
+        "index": 74,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 64,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 2,
+        "index": 73,
+      },
+    ],
+  },
+  {
+    "strategy": "Visual Elimination Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 67,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 5,
+        "index": 70,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 6,
+        "index": 76,
+      },
+    ],
+  },
+  {
+    "strategy": "Open Singles Strategy",
+    "type": "value",
+    "updates": [
+      {
+        "filledValue": 8,
+        "index": 79,
+      },
+    ],
+  },
+]
+`;

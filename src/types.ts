@@ -31,6 +31,7 @@ export interface Strategy {
   score: number;
   fn: StrategyFn;
   postFn?: () => void;
+  prevFn?: () => void;
   type: "value" | "elimination";
 }
 
@@ -59,6 +60,7 @@ export type Houses = Array<House>;
 
 export type AnalyzeData = {
   isValid?: boolean;
+  isUnique?: boolean;
   usedStrategies?: ({
     title: string;
     freq: number;

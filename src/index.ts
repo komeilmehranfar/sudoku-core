@@ -9,17 +9,19 @@ export function analyze(Board: Board): AnalyzeData {
   });
   const analysis = analyzeBoard();
   const isUnique = hasUniqueSolution(Board);
-  analysis.isValid = analysis.isValid && isUnique;
+  analysis.isUnique = isUnique;
   return analysis;
 }
 
 export function generate(difficulty: Difficulty): Board {
   const { getBoard } = createSudokuInstance({ difficulty });
   const board = getBoard();
-  if (analyze(board).isValid) {
+  const analysis = analyze(board);
+  if (analysis.isValid && analysis.isUnique) {
     return board;
+  } else {
+    return generate(difficulty);
   }
-  return generate(difficulty);
 }
 
 export function solve(Board: Board):
@@ -52,7 +54,6 @@ export function hint(Board: Board): SolvingStep[] | undefined {
 }
 
 export function hasUniqueSolution(Board: Board): boolean {
-  let slicedBoard = [...Board];
   const { solveAll } = createSudokuInstance({
     initBoard: Board,
   });
@@ -60,15 +61,13 @@ export function hasUniqueSolution(Board: Board): boolean {
   if (!solvedBoard) {
     return false;
   }
-  while (slicedBoard.some((item) => !Boolean(item))) {
-    const { solveStep } = createSudokuInstance({
-      initBoard: slicedBoard,
-    });
-    const board = solveStep();
-    if (!board) {
+  const { solveStep, getBoard } = createSudokuInstance({
+    initBoard: Board,
+  });
+  while (getBoard().some((item) => !Boolean(item))) {
+    if (!solveStep()) {
       return false;
     }
-    slicedBoard = board;
   }
-  return solvedBoard.every((item, index) => slicedBoard[index] === item);
+  return solvedBoard.every((item, index) => getBoard()[index] === item);
 }

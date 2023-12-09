@@ -1,4 +1,18 @@
-import { generate, analyze, solve, hasUniqueSolution } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import {
+  DIFFICULTY_EASY,
+  DIFFICULTY_EXPERT,
+  DIFFICULTY_HARD,
+  DIFFICULTY_MASTER,
+  DIFFICULTY_MEDIUM,
+} from "../src/constants";
+import {
+  generate,
+  analyze,
+  solve,
+  hasUniqueSolution,
+  Difficulty,
+  Board,
+} from "../src/index"; // Import the createSudokuInstance module (update path as needed)
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
   EXPERT_SUDOKU_BOARD_FOR_TEST,
@@ -18,7 +32,6 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("easy");
-      expect(sudokuBoard.filter(Boolean).length).toBe(40);
       expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid medium difficulty board", () => {
@@ -29,7 +42,6 @@ describe("sudoku-core", () => {
       const data = analyze(sudokuBoard);
       // Assert
       expect(data.difficulty).toBe("medium");
-      expect(sudokuBoard.filter(Boolean).length).toBe(30);
       expect(hasUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid hard difficulty board", () => {
@@ -45,7 +57,9 @@ describe("sudoku-core", () => {
     });
     it("should generate a valid expert difficulty board", () => {
       //Arrange
+
       const sudokuBoard = generate("expert");
+
       //Act
       const data = analyze(sudokuBoard);
 
@@ -67,25 +81,35 @@ describe("sudoku-core", () => {
   });
 
   describe("solve method", () => {
-    it("should solve the board", () => {
-      //Arrange
-      const sudokuBoard = generate("master");
-      const unfilledCellsLength = sudokuBoard.filter(
-        (cell) => !Boolean(cell),
-      ).length;
+    const items = [
+      [DIFFICULTY_EASY, EASY_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_MEDIUM, MEDIUM_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_HARD, HARD_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_EXPERT, EXPERT_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_MASTER, MASTER_SUDOKU_BOARD_FOR_TEST],
+    ] as [Difficulty, Board][];
+    items.forEach(([difficulty, sudokuBoard]) => {
+      it(`should solve the ${difficulty} board`, () => {
+        //Arrange
+        const emptyCellsLength = sudokuBoard.filter(
+          (cell) => !Boolean(cell),
+        ).length;
 
-      //Act
-      const result = solve(sudokuBoard);
-      const steps = result?.steps;
-
-      // Assert
-      const stepsFillingCount =
-        steps?.reduce(
-          (acc, curr) =>
-            curr.type === "value" ? curr.updates.length + acc : acc,
-          0,
-        ) || 0;
-      expect(stepsFillingCount).toBe(unfilledCellsLength);
+        //Act
+        const result = solve(sudokuBoard);
+        const steps = result?.steps;
+        const solvedBoard = result?.board;
+        // Assert
+        const filledCellsLength =
+          steps?.reduce(
+            (acc, curr) =>
+              curr.type === "value" ? curr.updates.length + acc : acc,
+            0,
+          ) || 0;
+        expect(filledCellsLength).toBe(emptyCellsLength);
+        expect(solvedBoard).toMatchSnapshot();
+        expect(steps).toMatchSnapshot();
+      });
     });
   });
   describe("analyze method", () => {

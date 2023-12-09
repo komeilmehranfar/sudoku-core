@@ -51,27 +51,39 @@ export function createSudokuInstance(options: Options = {}) {
   // Define a list to keep track of which strategies have been used to solve the board
   let usedStrategies: Array<number> = [];
 
+  // Function to reset the board variables
+  const resetCandidates = () => {
+    board = new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, index) => ({
+      ...board[index],
+      candidates:
+        board[index].value == null
+          ? CANDIDATES.slice()
+          : board[index].candidates,
+    }));
+  };
+
   // Define different strategies to solve the Sudoku along with their scores
+
   const strategies: Array<Strategy> = [
     {
+      postFn: updateCandidatesBasedOnCellsValue,
       title: "Open Singles Strategy",
       fn: openSinglesStrategy,
       score: 0.1,
-      postFn: updateCandidatesBasedOnCellsValue,
       type: "value",
     },
     {
+      postFn: updateCandidatesBasedOnCellsValue,
       title: "Visual Elimination Strategy",
       fn: visualEliminationStrategy,
       score: 9,
-      postFn: updateCandidatesBasedOnCellsValue,
       type: "value",
     },
     {
+      postFn: updateCandidatesBasedOnCellsValue,
       title: "Single Candidate Strategy",
       fn: singleCandidateStrategy,
       score: 8,
-      postFn: updateCandidatesBasedOnCellsValue,
       type: "value",
     },
     {
@@ -86,8 +98,6 @@ export function createSudokuInstance(options: Options = {}) {
       score: 80,
       type: "elimination",
     },
-
-    //harder for human to spot
     {
       title: "Hidden Pair Strategy",
       fn: hiddenPairStrategy,
@@ -100,22 +110,18 @@ export function createSudokuInstance(options: Options = {}) {
       score: 100,
       type: "elimination",
     },
-
-    //never gets used unless above strategies are turned off?
     {
       title: "Hidden Triplet Strategy",
       fn: hiddenTripletStrategy,
       score: 140,
       type: "elimination",
     },
-    //never gets used unless above strategies are turned off?
     {
       title: "Naked Quadruple Strategy",
       fn: nakedQuadrupleStrategy,
       score: 150,
       type: "elimination",
     },
-    //never gets used unless above strategies are turned off?
     {
       title: "Hidden Quadruple Strategy",
       fn: hiddenQuadrupleStrategy,
@@ -162,17 +168,6 @@ export function createSudokuInstance(options: Options = {}) {
       }
     }
     return cellsUpdated;
-  };
-
-  // Function to reset the board variables
-  const resetCandidates = () => {
-    board = new Array(BOARD_SIZE * BOARD_SIZE).fill(null).map((_, index) => ({
-      ...board[index],
-      candidates:
-        board[index].value == null
-          ? CANDIDATES.slice()
-          : board[index].candidates,
-    }));
   };
 
   /* indexInHouse
@@ -804,19 +799,17 @@ export function createSudokuInstance(options: Options = {}) {
   }: {
     strategyIndex?: number;
     gradingMode?: boolean;
-  } = {}): boolean | "elimination" => {
+  } = {}): false | "elimination" | "value" => {
     if (isBoardFinished(board)) {
       if (!gradingMode) {
         onFinish?.(calculateBoardDifficulty(usedStrategies, strategies));
       }
       return false;
     }
-
     const effectedCells: boolean | -1 | Update[] =
       strategies[strategyIndex].fn();
 
     strategies[strategyIndex].postFn?.();
-
     if (effectedCells === false) {
       if (strategies.length > strategyIndex + 1) {
         return applySolvingStrategies({
@@ -845,7 +838,7 @@ export function createSudokuInstance(options: Options = {}) {
     }
 
     usedStrategies[strategyIndex] += 1;
-    return true;
+    return strategies[strategyIndex].type;
   };
 
   const setBoardCellWithRandomCandidate = (cellIndex: number) => {
@@ -890,24 +883,23 @@ export function createSudokuInstance(options: Options = {}) {
     return (
       analysis.isValid &&
       analysis.difficulty &&
+      analysis.isUnique &&
       isEasyEnough(difficulty, analysis.difficulty)
     );
   }
   // Function to prepare the game board
-  const prepareGameBoard = () => {
+  const prepareGameBoard = (boardAnswer: Board) => {
     const cells = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
     let removalCount = getRemovalCountBasedOnDifficulty(difficulty);
     while (removalCount > 0 && cells.length > 0) {
       const randIndex = Math.floor(Math.random() * cells.length);
       const cellIndex = cells.splice(randIndex, 1)[0];
       const cellValue = board[cellIndex].value;
-
       // Remove value from this cell
       addValueToCellIndex(board, cellIndex, null);
       // Reset candidates, only in model.
       resetCandidates();
-
-      const boardAnalysis = analyzeBoard();
+      const boardAnalysis = analyzeBoard({ boardAnswer });
       if (isValidAndEasyEnough(boardAnalysis, difficulty)) {
         removalCount--;
       } else {
@@ -932,7 +924,7 @@ export function createSudokuInstance(options: Options = {}) {
       )
       .filter(Boolean);
   }
-  function analyzeBoard() {
+  function analyzeBoard({ boardAnswer }: { boardAnswer?: Board } = {}) {
     const usedStrategiesClone = [...usedStrategies];
     const boardClone = JSON.parse(JSON.stringify(board));
 
@@ -940,9 +932,12 @@ export function createSudokuInstance(options: Options = {}) {
       usedStrategies = usedStrategiesClone;
       board = boardClone;
     }
-
-    while (applySolvingStrategies({ gradingMode: true })) {
-      // Continue applying solving strategies until no more can be applied
+    let Continue: boolean | "value" | "elimination" = true;
+    while (Continue) {
+      Continue = applySolvingStrategies({
+        strategyIndex: Continue === "elimination" ? 1 : 0,
+        gradingMode: true,
+      });
     }
 
     const data: AnalyzeData = {
@@ -954,6 +949,9 @@ export function createSudokuInstance(options: Options = {}) {
       const boardDiff = calculateBoardDifficulty(usedStrategies, strategies);
       data.difficulty = boardDiff.difficulty;
       data.score = boardDiff.score;
+      data.isUnique = boardAnswer
+        ? board.every((cell, index) => cell.value === boardAnswer[index])
+        : false;
     }
 
     restoreOriginalState();
@@ -965,16 +963,22 @@ export function createSudokuInstance(options: Options = {}) {
   function generateBoard(): Board {
     generateBoardAnswerRecursively(0);
 
-    const boardAnswer = board.slice();
+    const boardAnswer = JSON.parse(
+      JSON.stringify(board.map((cell) => cell.value)),
+    );
+    const slicedBoard = JSON.parse(JSON.stringify(board));
 
     function isBoardTooEasy() {
-      prepareGameBoard();
+      prepareGameBoard(boardAnswer);
       const data = analyzeBoard();
-      return !(data.difficulty && isHardEnough(difficulty, data.difficulty));
+      if (data.isValid && data.difficulty) {
+        return !isHardEnough(difficulty, data.difficulty);
+      }
+      return true;
     }
 
     function restoreBoardAnswer() {
-      board = boardAnswer.slice();
+      board = slicedBoard.slice();
     }
 
     while (isBoardTooEasy()) {
@@ -984,13 +988,6 @@ export function createSudokuInstance(options: Options = {}) {
     updateCandidatesBasedOnCellsValue();
     return getBoard();
   }
-
-  const solveAll = (): Board => {
-    while (applySolvingStrategies()) {
-      // Continue looping until no more solving strategies can be applied
-    }
-    return getBoard();
-  };
   const MAX_ITERATIONS = 30; // Set your desired maximum number of iterations
 
   const solveStep = (iterationCount: number = 0): Board | false => {
@@ -1000,14 +997,27 @@ export function createSudokuInstance(options: Options = {}) {
 
     const initialBoard = getBoard().slice();
     applySolvingStrategies();
+    const stepSolvedBoard = getBoard().slice();
 
     const boardNotChanged =
-      initialBoard.filter(Boolean).length === getBoard().filter(Boolean).length;
+      initialBoard.filter(Boolean).length ===
+      stepSolvedBoard.filter(Boolean).length;
 
     if (!isBoardFinished(board) && boardNotChanged) {
       return solveStep(iterationCount + 1);
     }
+    board = convertInitialBoardToSerializedBoard(stepSolvedBoard);
+    updateCandidatesBasedOnCellsValue();
+    return getBoard();
+  };
 
+  const solveAll = (): Board => {
+    let Continue: boolean | "value" | "elimination" = true;
+    while (Continue) {
+      Continue = applySolvingStrategies({
+        strategyIndex: Continue === "elimination" ? 1 : 0,
+      });
+    }
     return getBoard();
   };
 
@@ -1018,7 +1028,6 @@ export function createSudokuInstance(options: Options = {}) {
     generateBoard();
   } else {
     board = convertInitialBoardToSerializedBoard(initBoard);
-    initializeBoard();
     updateCandidatesBasedOnCellsValue();
     analyzeBoard();
   }
