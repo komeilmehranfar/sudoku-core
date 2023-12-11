@@ -64,12 +64,20 @@ npm install sudoku-core@latest
 
 ### Usage
 
-| function                | Input                                                | Output                  |
-| ----------------------- | ---------------------------------------------------- | ----------------------- |
-| [generate](#generate)   | "easy" \| "medium" \| "hard" \| "expert" \| "master" | Board                   |
-| [solve](#solve)         | Board                                                | Board                   |
-| [solveStep](#solveStep) | Board                                                | Board                   |
-| [analyze](#analyze)     | Board                                                | [AnalyzeData](#analyze) |
+| function              | Input                                                | Output                  |
+| --------------------- | ---------------------------------------------------- | ----------------------- |
+| [generate](#generate) | "easy" \| "medium" \| "hard" \| "expert" \| "master" | Board                   |
+| [solve](#solve)       | Board                                                | [SolvingResult](#solve) |
+| [hint](#solveStep)    | Board                                                | [SolvingResult](#hint)  |
+| [analyze](#analyze)   | Board                                                | [AnalyzeData](#analyze) |
+
+board:
+
+- it has numbers from 1-9 or null
+- it has 81 cells
+- it's solvable (not by brute force)
+- there is only one version of answer to this board (not the process, the result)
+  [1,null,9,5,8,null,null,6,3, ... 81 items]
 
 #### generate
 
@@ -101,73 +109,92 @@ console.log(board);
 - Solves the entire puzzle.
 
 ```typescript
-// board:
-// - it has numbers from 1-9 or null
-// - it has 81 cells
-// - it's solvable (not by brute force)
-// - there is only one version of answer to this board (not the process, the result)
-// [
-//   1,
-//   null,
-//   9,
-//   5,
-//   8,
-//   null,
-//   null,
-//   6,
-//   3
-//   ... 81 items
-// ]
 const solvedBoard = solve(board);
 console.log(solvedBoard);
 ```
 
 ```json
-[
-  5, 3, 4, 7, 9, 8, 2, 1
-  //... 81 items
-]
+{
+  "solved": true,
+  "board": [
+    2,
+    7,
+    6,
+    3,
+    8,
+    1,
+    9
+    // ... 81 items
+  ],
+  "steps": [
+    {
+      "strategy": "Single Candidate Strategy",
+      "updates": [{
+        "index": 5,
+        "filledValue": 1,
+        "eliminatedCandidate": null,
+      }],
+      "type": "value"
+    },
+    ...steps
+  ],
+  "analysis": {
+    "hasSolution": true,
+    "hasUniqueSolution": true,
+    "usedStrategies": [
+      { "title": "Single Remaining Cell Strategy", "frequency": 21 },
+      ...strategies
+    ],
+    "difficulty": "master",
+    "score": 2232
+  }
+}
 ```
 
-#### solveStep
+#### hint
 
-- Solves the next step of the puzzle.
+- Solves the next step of the puzzle and return steps.
 
 ```typescript
-// board:
-// - it has numbers from 1-9 or null
-// - it has 81 cells
-// - it's solvable (not by brute force)
-// - there is only one version of answer to this board (not the process, the result)
-// [
-//   1,
-//   null,
-//   9,
-//   5,
-//   8,
-//   null,
-//   null,
-//   6,
-//   3
-//   ... 81 items
-// ]
-const solvedBoard = solveStep(board);
+const solvedBoard = hint(board);
 console.log(solvedBoard);
 ```
 
 ```json
-[
-  1,
-  3,
-  6,
-  null,
-  9, // => it was null
-  5,
-  8,
-  null,
-  null
-  //... 81 items
-]
+{
+  "solved": true,
+  "board": [
+    null,
+    7,
+    6,
+    null,
+    null,
+    1, // null => 1
+    null
+    // ... 81 items
+  ],
+  "steps": [
+    {
+      "strategy": "Single Candidate Strategy",
+      "updates": [{
+        "index": 5,
+        "filledValue": 1,
+        "eliminatedCandidate": null,
+      }],
+      "type": "value"
+    }
+  ],
+  "analysis": {
+    "hasSolution": true,
+    "hasUniqueSolution": true,
+    "usedStrategies": [
+      { "title": "Single Remaining Cell Strategy", "frequency": 21 },
+      ...strategies
+    ],
+    "difficulty": "master",
+    "score": 2232
+  }
+}
 ```
 
 #### analyze
@@ -175,30 +202,14 @@ console.log(solvedBoard);
 - Returns an analysis of the current board state.
 
 ```typescript
-// board:
-// - it has numbers from 1-9 or null
-// - it has 81 cells
-// - it's solvable (not by brute force)
-// - there is only one version of answer to this board (not the process, the result)
-// [
-//   1,
-//   null,
-//   9,
-//   5,
-//   8,
-//   null,
-//   null,
-//   6,
-//   3
-//   ... 81 items
-// ]
 const analyzeData = analyze(board);
 console.log(analyzeData);
 ```
 
 ```json
 {
-  "isValid": true,
+  "hasSolution": true,
+  "hasUniqueSolution": true,
   "usedStrategies": [
     { "title": "Single Remaining Cell Strategy", "frequency": 21 },
     { "title": "Single Candidate Cell Strategy", "frequency": 11 },
@@ -248,8 +259,9 @@ for more information.
 
 ## Authors
 
-- [Komeil Mehranfar](https://github.com/komeilmehranfar) - Frontend Engineer at
-  [iO](https://iodigital.com)
+- [Komeil Mehranfar](https://github.com/komeilmehranfar)
+  - Founder at [Sudoku.best](https://sudoku.best)
+  - Frontend Engineer at [iO](https://iodigital.com)
 
 ## Acknowledgements
 

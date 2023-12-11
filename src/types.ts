@@ -45,6 +45,14 @@ export interface SolvingStep {
   updates: Array<Update>;
   type: "value" | "elimination";
 }
+export interface SolvingResult {
+  solved: boolean;
+  board?: Board;
+  steps?: SolvingStep[];
+  analysis?: AnalyzeData;
+  error?: string;
+}
+
 export interface Options {
   onError?: (args: { message: string }) => void;
   onFinish?: (args: { difficulty: Difficulty; score: number }) => void;

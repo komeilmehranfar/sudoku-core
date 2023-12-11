@@ -1,5 +1,11 @@
 import { createSudokuInstance } from "./sudoku";
-import { AnalyzeData, Board, Difficulty, SolvingStep } from "./types";
+import {
+  type AnalyzeData,
+  type Board,
+  type Difficulty,
+  type SolvingStep,
+  type SolvingResult,
+} from "./types";
 
 export { type AnalyzeData, type Board, type Difficulty, type SolvingStep };
 
@@ -15,13 +21,7 @@ export function generate(difficulty: Difficulty): Board {
   return getBoard();
 }
 
-export function solve(Board: Board): {
-  solved: boolean;
-  board?: Board;
-  steps?: SolvingStep[];
-  analysis?: AnalyzeData;
-  error?: string;
-} {
+export function solve(Board: Board): SolvingResult {
   const solvingSteps: SolvingStep[] = [];
 
   const { solveAll, analyzeBoard } = createSudokuInstance({
@@ -50,13 +50,7 @@ export function solve(Board: Board): {
   return { solved: true, board, steps: solvingSteps, analysis };
 }
 
-export function hint(Board: Board): {
-  solved: boolean;
-  board?: Board;
-  steps?: SolvingStep[];
-  analysis?: AnalyzeData;
-  error?: string;
-} {
+export function hint(Board: Board): SolvingResult {
   const solvingSteps: SolvingStep[] = [];
   const { solveStep, analyzeBoard } = createSudokuInstance({
     initBoard: Board,

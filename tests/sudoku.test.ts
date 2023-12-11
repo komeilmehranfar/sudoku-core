@@ -5,7 +5,14 @@ import {
   DIFFICULTY_MASTER,
   DIFFICULTY_MEDIUM,
 } from "../src/constants";
-import { generate, analyze, solve, Difficulty, Board } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
+import {
+  generate,
+  analyze,
+  solve,
+  Difficulty,
+  Board,
+  hint,
+} from "../src/index"; // Import the createSudokuInstance module (update path as needed)
 import { createSudokuInstance } from "../src/sudoku";
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
@@ -119,6 +126,36 @@ describe("sudoku-core", () => {
             0,
           ) || 0;
         expect(filledCellsLength).toBe(emptyCellsLength);
+        expect(solvedBoard).toMatchSnapshot();
+        expect(steps).toMatchSnapshot();
+      });
+    });
+  });
+  describe("hint method", () => {
+    const items = [
+      [DIFFICULTY_EASY, EASY_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_MEDIUM, MEDIUM_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_HARD, HARD_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_EXPERT, EXPERT_SUDOKU_BOARD_FOR_TEST],
+      [DIFFICULTY_MASTER, MASTER_SUDOKU_BOARD_FOR_TEST],
+    ] as [Difficulty, Board][];
+    items.forEach(([difficulty, sudokuBoard]) => {
+      it(`should solve the ${difficulty} board`, () => {
+        //Arrange
+
+        //Act
+        const result = hint(sudokuBoard);
+
+        const steps = result?.steps;
+        const solvedBoard = result?.board;
+        // Assert
+        const filledCellsLength =
+          steps?.reduce(
+            (acc, curr) =>
+              curr.type === "value" ? curr.updates.length + acc : acc,
+            0,
+          ) || 0;
+        expect(filledCellsLength).toBe(1);
         expect(solvedBoard).toMatchSnapshot();
         expect(steps).toMatchSnapshot();
       });
