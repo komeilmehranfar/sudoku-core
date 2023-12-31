@@ -260,7 +260,6 @@ for more information.
 ## Authors
 
 - [Komeil Mehranfar](https://github.com/komeilmehranfar)
-  - Founder at [Sudoku.best](https://sudoku.best)
   - Frontend Engineer at [iO](https://iodigital.com)
 
 ## Acknowledgements
