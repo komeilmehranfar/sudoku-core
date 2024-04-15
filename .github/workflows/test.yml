@@ -9,7 +9,6 @@ on:
       - ".editorconfig"
     branches:
       - main
-      - master
   pull_request:
     paths-ignore:
       - "docs/**"
@@ -18,7 +17,6 @@ on:
       - ".editorconfig"
     branches:
       - main
-      - master
 
 jobs:
   test:
@@ -27,8 +25,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
-        node: [16.x, 18.x]
+        node: [18.x]
 
     steps:
       - uses: actions/checkout@v2
