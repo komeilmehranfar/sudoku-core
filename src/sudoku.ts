@@ -5,6 +5,7 @@ import {
   CANDIDATES,
   NULL_CANDIDATE_LIST,
 } from "./constants";
+import { isUniqueSolution } from "./sudoku-solver";
 
 // Importing necessary types
 import {
@@ -104,30 +105,30 @@ export function createSudokuInstance(options: Options = {}) {
       score: 90,
       type: "elimination",
     },
-    {
-      title: "Naked Triplet Strategy",
-      fn: nakedTripletStrategy,
-      score: 100,
-      type: "elimination",
-    },
-    {
-      title: "Hidden Triplet Strategy",
-      fn: hiddenTripletStrategy,
-      score: 140,
-      type: "elimination",
-    },
-    {
-      title: "Naked Quadruple Strategy",
-      fn: nakedQuadrupleStrategy,
-      score: 150,
-      type: "elimination",
-    },
-    {
-      title: "Hidden Quadruple Strategy",
-      fn: hiddenQuadrupleStrategy,
-      score: 280,
-      type: "elimination",
-    },
+    // {
+    //   title: "Naked Triplet Strategy",
+    //   fn: nakedTripletStrategy,
+    //   score: 100,
+    //   type: "elimination",
+    // },
+    // {
+    //   title: "Hidden Triplet Strategy",
+    //   fn: hiddenTripletStrategy,
+    //   score: 140,
+    //   type: "elimination",
+    // },
+    // {
+    //   title: "Naked Quadruple Strategy",
+    //   fn: nakedQuadrupleStrategy,
+    //   score: 150,
+    //   type: "elimination",
+    // },
+    // {
+    //   title: "Hidden Quadruple Strategy",
+    //   fn: hiddenQuadrupleStrategy,
+    //   score: 280,
+    //   type: "elimination",
+    // },
   ];
 
   // Function to initialize the Sudoku board
@@ -629,17 +630,17 @@ export function createSudokuInstance(options: Options = {}) {
    * --------------
    * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
    * -----------------------------------------------------------------*/
-  function nakedTripletStrategy() {
-    return nakedCandidatesStrategy(3);
-  }
+  // function nakedTripletStrategy() {
+  //   return nakedCandidatesStrategy(3);
+  // }
 
   /* nakedQuadrupleStrategy
    * --------------
    * These strategies look for a group of 2, 3, or 4 cells in the same house that between them have exactly 2, 3, or 4 candidates. Since those candidates have to go in some cell in that group, they can be eliminated as candidates from other cells in the house. For example, if in a column two cells can only contain the numbers 2 and 3, then in the rest of that column, 2 and 3 can be removed from the candidate lists.
    * -----------------------------------------------------------------*/
-  function nakedQuadrupleStrategy() {
-    return nakedCandidatesStrategy(4);
-  }
+  // function nakedQuadrupleStrategy() {
+  //   return nakedCandidatesStrategy(4);
+  // }
 
   /* hiddenLockedCandidates
    * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
@@ -780,17 +781,17 @@ export function createSudokuInstance(options: Options = {}) {
    * --------------
    * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
    * -----------------------------------------------------------------*/
-  function hiddenTripletStrategy() {
-    return hiddenLockedCandidates(3);
-  }
+  // function hiddenTripletStrategy() {
+  //   return hiddenLockedCandidates(3);
+  // }
 
   /* hiddenQuadrupleStrategy
    * --------------
    * These strategies are similar to the naked ones, but instead of looking for cells that only contain the group of candidates, they look for candidates that only appear in the group of cells. For example, if in a box, the numbers 2 and 3 only appear in two cells, then even if those cells have other candidates, you know that one of them has to be 2 and the other has to be 3, so you can remove any other candidates from those cells.
    * -----------------------------------------------------------------*/
-  function hiddenQuadrupleStrategy() {
-    return hiddenLockedCandidates(4);
-  }
+  // function hiddenQuadrupleStrategy() {
+  //   return hiddenLockedCandidates(4);
+  // }
 
   // Function to apply the solving strategies in order
   const applySolvingStrategies = ({
@@ -884,7 +885,6 @@ export function createSudokuInstance(options: Options = {}) {
     return (
       analysis.hasSolution &&
       analysis.difficulty &&
-      analysis.hasUniqueSolution &&
       isEasyEnough(difficulty, analysis.difficulty)
     );
   }
@@ -901,8 +901,11 @@ export function createSudokuInstance(options: Options = {}) {
       // Reset candidates, only in model.
       resetCandidates();
       const boardAnalysis = analyzeBoard();
-
-      if (isValidAndEasyEnough(boardAnalysis, difficulty)) {
+      console.log({ removalCount, score: boardAnalysis.score });
+      if (
+        isValidAndEasyEnough(boardAnalysis, difficulty) &&
+        isUniqueSolution(getBoard())
+      ) {
         removalCount--;
       } else {
         // Reset - don't dig this cell
@@ -940,7 +943,6 @@ export function createSudokuInstance(options: Options = {}) {
     }
     const data: AnalyzeData = {
       hasSolution: isBoardFinished(board),
-      hasUniqueSolution: false,
       usedStrategies: filterAndMapStrategies(strategies, usedStrategies),
     };
 
@@ -949,7 +951,6 @@ export function createSudokuInstance(options: Options = {}) {
       data.difficulty = boardDiff.difficulty;
       data.score = boardDiff.score;
     }
-    const boardFinishedWithSolveAll = getBoard();
     usedStrategies = usedStrategiesClone.slice();
     board = boardClone;
 
@@ -961,13 +962,6 @@ export function createSudokuInstance(options: Options = {}) {
       solvedBoard = solveStep({ analyzeMode: true, iterationCount: 0 });
     }
 
-    if (data.hasSolution && typeof solvedBoard !== "boolean") {
-      data.hasUniqueSolution =
-        solvedBoard &&
-        solvedBoard.every(
-          (item, index) => item === boardFinishedWithSolveAll[index],
-        );
-    }
     usedStrategies = usedStrategiesClone.slice();
     board = boardClone;
     return data;

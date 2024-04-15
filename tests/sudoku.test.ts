@@ -13,7 +13,7 @@ import {
   Board,
   hint,
 } from "../src/index"; // Import the createSudokuInstance module (update path as needed)
-import { createSudokuInstance } from "../src/sudoku";
+import { isUniqueSolution } from "../src/sudoku-solver";
 import {
   EASY_SUDOKU_BOARD_FOR_TEST,
   EXPERT_SUDOKU_BOARD_FOR_TEST,
@@ -22,24 +22,6 @@ import {
   MEDIUM_SUDOKU_BOARD_FOR_TEST,
 } from "./constants";
 
-function hasUniqueSolution(Board: Board): boolean {
-  const { solveAll } = createSudokuInstance({
-    initBoard: Board,
-  });
-  const solvedBoard = solveAll();
-  if (!solvedBoard) {
-    return false;
-  }
-  const { solveStep, getBoard } = createSudokuInstance({
-    initBoard: Board,
-  });
-  while (getBoard().some((item) => !Boolean(item))) {
-    if (!solveStep()) {
-      return false;
-    }
-  }
-  return solvedBoard.every((item, index) => getBoard()[index] === item);
-}
 describe("sudoku-core", () => {
   describe("generate method", () => {
     it("should generate a valid easy difficulty board", () => {
@@ -51,7 +33,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("easy");
-      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid medium difficulty board", () => {
       //Arrange
@@ -61,7 +43,7 @@ describe("sudoku-core", () => {
       const data = analyze(sudokuBoard);
       // Assert
       expect(data.difficulty).toBe("medium");
-      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid hard difficulty board", () => {
       //Arrange
@@ -72,11 +54,10 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("hard");
-      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid expert difficulty board", () => {
       //Arrange
-
       const sudokuBoard = generate("expert");
 
       //Act
@@ -84,7 +65,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(data.difficulty).toBe("expert");
-      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should generate a valid master difficulty board", () => {
       //Arrange
@@ -94,8 +75,9 @@ describe("sudoku-core", () => {
       const data = analyze(sudokuBoard);
 
       // Assert
+      console.log(sudokuBoard);
       expect(data.difficulty).toBe("master");
-      expect(hasUniqueSolution(sudokuBoard)).toBe(true);
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
   });
 
@@ -167,11 +149,13 @@ describe("sudoku-core", () => {
       const sudokuBoard = [1];
 
       //Act
-      const { difficulty, hasSolution } = analyze(sudokuBoard);
+      const { difficulty, hasSolution, hasUniqueSolution } =
+        analyze(sudokuBoard);
 
       // Assert
       expect(difficulty).toBe(undefined);
       expect(hasSolution).toBe(false);
+      expect(hasUniqueSolution).toBe(false);
     });
     it("should validate the easy board", () => {
       //Arrange
@@ -182,6 +166,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(difficulty).toBe("easy");
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should validate the medium board", () => {
       //Arrange
@@ -192,6 +177,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(difficulty).toBe("medium");
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should validate the hard board", () => {
       //Arrange
@@ -202,6 +188,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(difficulty).toBe("hard");
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should validate the expert board", () => {
       //Arrange
@@ -212,6 +199,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(difficulty).toBe("expert");
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
     it("should validate the master board", () => {
       //Arrange
@@ -222,6 +210,7 @@ describe("sudoku-core", () => {
 
       // Assert
       expect(difficulty).toBe("master");
+      expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
   });
 });
