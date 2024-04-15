@@ -901,7 +901,6 @@ export function createSudokuInstance(options: Options = {}) {
       // Reset candidates, only in model.
       resetCandidates();
       const boardAnalysis = analyzeBoard();
-      console.log({ removalCount, score: boardAnalysis.score });
       if (
         isValidAndEasyEnough(boardAnalysis, difficulty) &&
         isUniqueSolution(getBoard())

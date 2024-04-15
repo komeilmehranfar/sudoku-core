@@ -75,7 +75,6 @@ describe("sudoku-core", () => {
       const data = analyze(sudokuBoard);
 
       // Assert
-      console.log(sudokuBoard);
       expect(data.difficulty).toBe("master");
       expect(isUniqueSolution(sudokuBoard)).toBe(true);
     });
