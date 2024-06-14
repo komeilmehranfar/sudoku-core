@@ -128,8 +128,10 @@ export const isHardEnough = (
 export const getRemovalCountBasedOnDifficulty = (difficulty: Difficulty) => {
   switch (difficulty) {
     case DIFFICULTY_EASY:
-      return BOARD_SIZE * BOARD_SIZE - 30;
+      return BOARD_SIZE * BOARD_SIZE - 38;
     case DIFFICULTY_MEDIUM:
+      return BOARD_SIZE * BOARD_SIZE - 30;
+    case DIFFICULTY_HARD:
       return BOARD_SIZE * BOARD_SIZE - 20;
     default:
       return BOARD_SIZE * BOARD_SIZE - 17;
