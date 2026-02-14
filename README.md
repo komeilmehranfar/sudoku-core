@@ -9,7 +9,7 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
   <h3 align="center">Sudoku Solver and Generator Javascript</h3>
 
   <p align="center"> 
-    <a href="https://github.com/komeilmehranfar/sudoku-core"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/komeilmehranfar/sudoku-core"><strong>Explore the doc»</strong></a>
     <br/>
     <br/>
     <a href="https://codesandbox.io/s/cold-fast-vvrf2d?file=/src/index.ts">View Demo</a>
