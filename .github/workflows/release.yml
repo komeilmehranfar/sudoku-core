@@ -45,3 +45,28 @@ jobs:
       - run: npm run build
       - run: npm run check:package
       - run: npm publish
+
+  # Mirror to GitHub Packages so the repo's "Packages" sidebar lists it.
+  # That registry requires an owner scope; npm keeps the unscoped name.
+  publish-github-packages:
+    needs: [release-please, publish]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@komeilmehranfar"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm pkg set name=@komeilmehranfar/sudoku-core
+      # Provenance is only supported on npmjs.org.
+      - run: npm publish --provenance=false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
