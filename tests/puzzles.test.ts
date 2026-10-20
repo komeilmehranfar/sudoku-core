@@ -1,6 +1,4 @@
-import * as fs from "fs";
-import * as path from "path";
-import { analyze, solve, isUniqueSolution, type Board } from "../src/index";
+import { analyze, solve, isUniqueSolution } from "../src/index";
 import { walkthrough } from "../src/tactics/apply";
 import { boardFromPublic } from "../src/board/board";
 import { yWingTactic } from "../src/tactics/y-wing";
@@ -10,24 +8,8 @@ import {
   stateFromValues,
 } from "./helpers/trust";
 import { REAL_WORLD_PUZZLES } from "./fixtures/real-world";
-import { parsePuzzleString } from "./fixtures/parse";
+import { loadProjectEuler96, parsePuzzleString } from "./fixtures/parse";
 import { REGISTRY_BOARDS } from "./fixtures/registry-boards";
-
-function loadProjectEuler96(): { id: string; board: Board }[] {
-  const file = path.join(__dirname, "fixtures", "project-euler-96.txt");
-  const lines = fs.readFileSync(file, "utf8").trim().split(/\r?\n/);
-  const puzzles: { id: string; board: Board }[] = [];
-  for (let i = 0; i < lines.length; ) {
-    const header = lines[i++];
-    const rows = lines.slice(i, i + 9).join("");
-    i += 9;
-    puzzles.push({
-      id: header.replace(/\s+/g, "-").toLowerCase(),
-      board: parsePuzzleString(rows),
-    });
-  }
-  return puzzles;
-}
 
 describe("published puzzles", () => {
   describe("curated catalog", () => {
