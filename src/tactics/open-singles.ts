@@ -1,16 +1,17 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { digitsFromMask } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /** Last empty cell in a house → remaining digit. */
 export const openSinglesTactic: Tactic = {
-  id: "open-singles",
-  title: "Open Singles Strategy",
+  id: TACTIC_ID.OPEN_SINGLES,
+  title: STRATEGY.OPEN_SINGLES,
   score: 0.1,
   rank: 1.0,
-  type: "value",
+  type: STEP_TYPE.VALUE,
   find(state: GridState) {
     for (const group of HOUSES) {
       for (const house of group) {
@@ -32,7 +33,7 @@ export const openSinglesTactic: Tactic = {
           continue;
         }
         return step(
-          { title: "Open Singles Strategy", type: "value" },
+          { title: STRATEGY.OPEN_SINGLES, type: STEP_TYPE.VALUE },
           [{ index, filledValue: remaining[0] }],
           {
             patternCells: [index],

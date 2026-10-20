@@ -1,8 +1,9 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * BUG+1: all unsolved cells are bivalue except exactly one with three
@@ -10,11 +11,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * houses of that cell (the "plus one" digit).
  */
 export const bugPlusOneTactic: Tactic = {
-  id: "bug-plus-one",
-  title: "BUG+1 Strategy",
+  id: TACTIC_ID.BUG_PLUS_ONE,
+  title: STRATEGY.BUG_PLUS_ONE,
   score: 240,
   rank: 5.1,
-  type: "value",
+  type: STEP_TYPE.VALUE,
   find(state: GridState) {
     const tri: number[] = [];
     let bivalueCount = 0;
@@ -50,7 +51,7 @@ export const bugPlusOneTactic: Tactic = {
       });
       if (oddInAll) {
         return step(
-          { title: "BUG+1 Strategy", type: "value" },
+          { title: STRATEGY.BUG_PLUS_ONE, type: STEP_TYPE.VALUE },
           [{ index: cell, filledValue: digit }],
           {
             patternCells: [cell],

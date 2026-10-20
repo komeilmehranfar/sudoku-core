@@ -1,8 +1,9 @@
-import { BOARD_SIZE, CELL_COUNT } from "../board/constants";
+import { BOARD_SIZE, CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES, peersOf, sameHouse } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * WXYZ-Wing Type 1 (SudokuWiki / StrmCkr):
@@ -12,11 +13,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * Enumerates unit-pairs (not C(n,4) over the whole grid) so step-finding stays fast.
  */
 export const wxyzWingTactic: Tactic = {
-  id: "wxyz-wing",
-  title: "WXYZ-Wing Strategy",
+  id: TACTIC_ID.WXYZ_WING,
+  title: STRATEGY.WXYZ_WING,
   score: 240,
   rank: 4.8,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     // Row + box
     for (let r = 0; r < BOARD_SIZE; r++) {
@@ -110,7 +111,7 @@ function searchInTwoUnits(
           }
           if (updates.length > 0) {
             return step(
-              { title: "WXYZ-Wing Strategy", type: "elimination" },
+              { title: STRATEGY.WXYZ_WING, type: STEP_TYPE.ELIMINATION },
               updates,
               {
                 patternCells: indices,

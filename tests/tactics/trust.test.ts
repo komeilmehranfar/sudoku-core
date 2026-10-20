@@ -9,8 +9,10 @@ import {
   solutionForBoard,
   stateFromValues,
 } from "../helpers/trust";
+import { CURATED_BOARDS } from "../fixtures/curated-boards";
 import { REAL_WORLD_PUZZLES } from "../fixtures/real-world";
-import { parsePuzzleString } from "../fixtures/parse";
+import { REGISTRY_BOARDS } from "../fixtures/registry-boards";
+import { loadProjectEuler96, parsePuzzleString } from "../fixtures/parse";
 import type { Board } from "../../src/types";
 
 interface TechniqueExample {
@@ -53,14 +55,13 @@ const TECHNIQUE_TO_TACTIC: Record<string, string> = {
 };
 
 function loadExamples(): TechniqueExample[] {
-  const file = path.join(__dirname, "..", "fixtures", "technique-examples.json");
+  const file = path.join(
+    __dirname,
+    "..",
+    "fixtures",
+    "technique-examples.json",
+  );
   return JSON.parse(fs.readFileSync(file, "utf8")) as TechniqueExample[];
-}
-
-/** State from puzzle givens only (no mid-solve fills / candidate masks). */
-function buildExampleState(example: TechniqueExample) {
-  const board = boardFromGivens(example.givens);
-  return stateFromValues(board.map((v) => (v == null ? 0 : v)) as number[]);
 }
 
 function boardFromGivens(givens: string): Board {
@@ -74,12 +75,43 @@ function filledCount(board: Board): number {
   return board.filter((v) => v != null && v > 0).length;
 }
 
+function toState(board: Board) {
+  return stateFromValues(board.map((v) => (v == null ? 0 : v)) as number[]);
+}
+
+/** State from puzzle givens only (no mid-solve fills / candidate masks). */
+function buildExampleState(example: TechniqueExample) {
+  return toState(boardFromGivens(example.givens));
+}
+
 /** Unique solution of the givens only. Skip sparse / non-unique boards. */
 function resolveSolution(example: TechniqueExample): number[] | null {
   const givens = boardFromGivens(example.givens);
   if (filledCount(givens) < 18) return null;
   return solutionForBoard(givens);
 }
+
+interface TacticBoard {
+  id: string;
+  tacticId: string;
+  board: Board;
+}
+
+/** One entry per (board, tactic) pair the fixtures say should fire. */
+const TACTIC_BOARDS: TacticBoard[] = [
+  ...REGISTRY_BOARDS.map((b) => ({
+    id: `registry ${b.tacticId}`,
+    tacticId: b.tacticId,
+    board: parsePuzzleString(b.puzzle),
+  })),
+  ...CURATED_BOARDS.flatMap((b) =>
+    b.tacticIds.map((tacticId) => ({
+      id: `curated ${b.label}`,
+      tacticId,
+      board: parsePuzzleString(b.puzzle),
+    })),
+  ),
+];
 
 describe("tactic trust — solution-preserving soundness", () => {
   const examples = loadExamples();
@@ -121,44 +153,59 @@ describe("tactic trust — solution-preserving soundness", () => {
     expect(failures).toEqual([]);
   });
 
+  it("never eliminates the true solution digit on fixture boards", () => {
+    const failures: string[] = [];
+    let checked = 0;
+
+    for (const fixture of TACTIC_BOARDS) {
+      const tactic = TACTICS.find((t) => t.id === fixture.tacticId);
+      if (!tactic) continue;
+
+      const solution = solutionForBoard(fixture.board);
+      if (!solution) continue;
+
+      const state = toState(fixture.board);
+      if (!state) continue;
+
+      const { step } = findAfterBasics(state, tactic);
+      if (!step) continue;
+
+      checked++;
+      const bad = assertEliminationsSound(step, solution, tactic.id, fixture.id);
+      if (bad) {
+        failures.push(
+          `${bad.context}: ${bad.tacticId} removed ${bad.eliminated} at ${bad.index} but solution is ${bad.solutionDigit}`,
+        );
+      }
+    }
+
+    expect(checked).toBeGreaterThan(20);
+    expect(failures).toEqual([]);
+  });
+
   it("never eliminates the true solution digit during full walkthroughs", () => {
     const failures: string[] = [];
     let boards = 0;
 
-    const fullExamples = examples.filter((e) => e.clues >= 22);
-    for (const example of fullExamples) {
-      const board = boardFromGivens(example.givens);
-      if (filledCount(board) < 18) continue;
-      const solution = solutionForBoard(board);
-      if (!solution) continue;
-      const state = stateFromValues(
-        board.map((v) => (v == null ? 0 : v)) as number[],
-      );
-      if (!state) continue;
-      boards++;
-      const path = walkthrough(state);
-      for (const step of path.steps) {
-        const bad = assertEliminationsSound(
-          step,
-          solution,
-          step.strategy,
-          `walk ${example.technique}#${example.exampleIndex}`,
-        );
-        if (bad) {
-          failures.push(
-            `${bad.context}: removed ${bad.eliminated} at ${bad.index}, truth ${bad.solutionDigit}`,
-          );
-        }
-      }
-    }
+    const fullBoards: { id: string; board: Board }[] = [
+      ...examples
+        .filter((e) => e.clues >= 22)
+        .map((e) => ({
+          id: `${e.technique}#${e.exampleIndex}`,
+          board: boardFromGivens(e.givens),
+        }))
+        .filter((e) => filledCount(e.board) >= 18),
+      ...loadProjectEuler96(),
+      ...REAL_WORLD_PUZZLES.map((p) => ({
+        id: p.id,
+        board: parsePuzzleString(p.puzzle),
+      })),
+    ];
 
-    for (const puzzle of REAL_WORLD_PUZZLES) {
-      const board = parsePuzzleString(puzzle.puzzle);
-      const solution = solutionForBoard(board);
+    for (const puzzle of fullBoards) {
+      const solution = solutionForBoard(puzzle.board);
       if (!solution) continue;
-      const state = stateFromValues(
-        board.map((v) => (v == null ? 0 : v)) as number[],
-      );
+      const state = toState(puzzle.board);
       if (!state) continue;
       boards++;
       const path = walkthrough(state);
@@ -177,13 +224,11 @@ describe("tactic trust — solution-preserving soundness", () => {
       }
     }
 
-    expect(boards).toBeGreaterThan(20);
+    expect(boards).toBeGreaterThan(50);
     expect(failures).toEqual([]);
   });
 
-  it.each(
-    Object.entries(TECHNIQUE_TO_TACTIC).map(([technique, id]) => [technique, id] as const),
-  )(
+  it.each(Object.entries(TECHNIQUE_TO_TACTIC))(
     "detects %s soundly from givens (unsound=0, hits when solvable)",
     (technique, tacticId) => {
       const tactic = TACTICS.find((t) => t.id === tacticId) as Tactic;

@@ -1,8 +1,9 @@
-import { BOARD_SIZE, CELL_COUNT } from "../board/constants";
+import { BOARD_SIZE, CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES, peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 type Node = string; // `${cell}:${digit}`
 
@@ -21,11 +22,11 @@ function parse(n: Node): { cell: number; digit: number } {
  * Same-cell endpoints → strip other candidates.
  */
 export const aicTactic: Tactic = {
-  id: "aic",
-  title: "AIC Strategy",
+  id: TACTIC_ID.AIC,
+  title: STRATEGY.AIC,
   score: 340,
   rank: 7.5,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const strong = buildStrong(state);
     const weak = buildWeak(state);
@@ -54,11 +55,9 @@ export const aicTactic: Tactic = {
           if (path.length >= 4 && !needStrong) {
             const updates = elimFromEndpoints(state, path[0], end);
             if (updates.length > 0) {
-              const patternCells = [
-                ...new Set(path.map((n) => parse(n).cell)),
-              ];
+              const patternCells = [...new Set(path.map((n) => parse(n).cell))];
               return step(
-                { title: "AIC Strategy", type: "elimination" },
+                { title: STRATEGY.AIC, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells,

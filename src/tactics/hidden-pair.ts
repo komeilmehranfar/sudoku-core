@@ -1,15 +1,16 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 export const hiddenPairTactic: Tactic = {
-  id: "hidden-pair",
-  title: "Hidden Pair Strategy",
+  id: TACTIC_ID.HIDDEN_PAIR,
+  title: STRATEGY.HIDDEN_PAIR,
   score: 90,
   rank: 3.4,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (const group of HOUSES) {
       for (const house of group) {
@@ -43,7 +44,7 @@ export const hiddenPairTactic: Tactic = {
             }
             if (updates.length > 0) {
               return step(
-                { title: "Hidden Pair Strategy", type: "elimination" },
+                { title: STRATEGY.HIDDEN_PAIR, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells: [a[0], a[1]],

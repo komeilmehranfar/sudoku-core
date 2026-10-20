@@ -1,0 +1,11 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "name": "sudoku-core",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "sort": ["source-order"],
+  "treatWarningsAsErrors": false
+}

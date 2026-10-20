@@ -1,19 +1,20 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { CELL_HOUSES, HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * Pointing / claiming: digit candidates in a box confined to a row/col
  * (or vice versa) → eliminate outside the intersection.
  */
 export const pointingEliminationTactic: Tactic = {
-  id: "pointing-elimination",
-  title: "Pointing Elimination Strategy",
+  id: TACTIC_ID.POINTING_ELIMINATION,
+  title: STRATEGY.POINTING_ELIMINATION,
   score: 80,
   rank: 2.6,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (let houseType = 0; houseType < 3; houseType++) {
       for (let houseIndex = 0; houseIndex < BOARD_SIZE; houseIndex++) {
@@ -61,7 +62,10 @@ export const pointingEliminationTactic: Tactic = {
 
           if (updates.length > 0) {
             return step(
-              { title: "Pointing Elimination Strategy", type: "elimination" },
+              {
+                title: STRATEGY.POINTING_ELIMINATION,
+                type: STEP_TYPE.ELIMINATION,
+              },
               updates,
               {
                 patternCells: cells,

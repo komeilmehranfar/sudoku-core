@@ -4,34 +4,80 @@ import {
   isComplete,
   type GridState,
 } from "../board/board";
-import {
-  digitsFromMask,
-  hasDigit,
-  maskFromDigits,
-} from "../board/candidates";
+import { digitsFromMask, hasDigit, maskFromDigits } from "../board/candidates";
 import { CELL_HOUSES, HOUSES, peersOf } from "../board/houses";
-import { BOARD_SIZE, CELL_COUNT } from "../board/constants";
 import {
-  applyStep,
-  ELIMINATION_TACTICS,
-  findNextStep,
-} from "../tactics/apply";
+  BOARD_SIZE,
+  CELL_COUNT,
+  STEP_TYPE,
+  type StepType,
+} from "../board/constants";
+import { applyStep, ELIMINATION_TACTICS, findNextStep } from "../tactics/apply";
+import { STRATEGY, techniqueName, type Strategy } from "../tactics/names";
 import type { Board, SolvingStep } from "../types";
 
-export type HouseKind = "row" | "column" | "box";
+export const HOUSE_KIND = {
+  ROW: "row",
+  COLUMN: "column",
+  BOX: "box",
+} as const;
+
+export type HouseKind = (typeof HOUSE_KIND)[keyof typeof HOUSE_KIND];
 
 export const TEACH_MODE = {
-  open: "open",
-  continue: "continue",
+  OPEN: "open",
+  CONTINUE: "continue",
 } as const;
 
 export type TeachMode = (typeof TEACH_MODE)[keyof typeof TEACH_MODE];
+
+/** Teaching-only steps that reconcile the player's pencil marks (not solver techniques). */
+export const TEACH_STRATEGY = {
+  IMPOSSIBLE_CANDIDATE: "Impossible Candidate",
+  MISSING_CANDIDATE: "Missing Candidate",
+} as const;
+
+const HOUSE_LABEL: Record<HouseKind, string> = {
+  [HOUSE_KIND.ROW]: "Row",
+  [HOUSE_KIND.COLUMN]: "Column",
+  [HOUSE_KIND.BOX]: "Box",
+};
+
+const TEACH_LABEL = {
+  NAKED_SINGLE: "Naked Single",
+  HIDDEN_SINGLE: "Hidden Single",
+} as const;
+
+type ExplainElimination = (name: string, digits: string) => string;
+
+const explainLockedSet: ExplainElimination = (name, digits) =>
+  `These cells form a ${name.toLowerCase()} on ${digits}. Those digits are locked there, so remove ${digits} from the other cells in the house (red).`;
+
+const explainPatternElimination: ExplainElimination = (name, digits) =>
+  `Eliminate candidate ${digits} from the red cell(s) using ${name}. Green marks show the pattern that forces the removal.`;
+
+/** Technique-specific copy for pattern eliminations; others use {@link explainPatternElimination}. */
+const ELIMINATION_EXPLANATION: Readonly<
+  Partial<Record<string, ExplainElimination>>
+> = {
+  [STRATEGY.TWO_STRING_KITE]: (_, digits) =>
+    `Candidate ${digits} forms a conjugate pair in a row and in a column that meet in the same box (the kite). At least one free end is true, so ${digits} can be eliminated from cells that see both free ends.`,
+  [STRATEGY.POINTING_ELIMINATION]: (_, digits) =>
+    `In the marked box, candidate ${digits} only appears in one line. That forces ${digits} into that line inside the box, so ${digits} can be removed from the rest of the line (red).`,
+  [STRATEGY.NAKED_PAIR]: explainLockedSet,
+  [STRATEGY.NAKED_TRIPLE]: explainLockedSet,
+  [STRATEGY.NAKED_QUAD]: explainLockedSet,
+  [STRATEGY.HIDDEN_PAIR]: explainLockedSet,
+  [STRATEGY.HIDDEN_GROUPS]: explainLockedSet,
+  [STRATEGY.HIDDEN_TRIPLE]: explainLockedSet,
+  [STRATEGY.HIDDEN_QUAD]: explainLockedSet,
+} satisfies Partial<Record<Strategy, ExplainElimination>>;
 
 export interface TeachingHint {
   strategy: string;
   /** Display label, e.g. Hidden Single (Box) / Swordfish */
   label: string;
-  type: "value" | "elimination" | "add";
+  type: StepType;
   digit: number | null;
   /** Cell where the placement/focus lands */
   focusCell: number | null;
@@ -54,12 +100,6 @@ export interface TeachingHint {
   /** Snapshot shown in the hint UI (before applying this step) */
   previewBoard: number[];
   previewCandidates: number[][];
-}
-
-function houseLabel(kind: HouseKind): string {
-  if (kind === "row") return "Row";
-  if (kind === "column") return "Column";
-  return "Box";
 }
 
 function snapshot(state: GridState): {
@@ -134,9 +174,9 @@ function findHiddenSingleHouse(
 ): { kind: HouseKind; cells: number[] } | null {
   const [r, c, b] = CELL_HOUSES[cell];
   const houses: Array<{ kind: HouseKind; cells: readonly number[] }> = [
-    { kind: "row", cells: HOUSES[0][r] },
-    { kind: "column", cells: HOUSES[1][c] },
-    { kind: "box", cells: HOUSES[2][b] },
+    { kind: HOUSE_KIND.ROW, cells: HOUSES[0][r] },
+    { kind: HOUSE_KIND.COLUMN, cells: HOUSES[1][c] },
+    { kind: HOUSE_KIND.BOX, cells: HOUSES[2][b] },
   ];
 
   for (const house of houses) {
@@ -152,7 +192,11 @@ function findHiddenSingleHouse(
   return null;
 }
 
-function relatedDigitCells(state: GridState, cell: number, digit: number): number[] {
+function relatedDigitCells(
+  state: GridState,
+  cell: number,
+  digit: number,
+): number[] {
   return peersOf(cell).filter((idx) => state.values[idx] === digit);
 }
 
@@ -190,7 +234,10 @@ function formatDigits(digits: number[]): string {
   return `${digits.slice(0, -1).join(", ")}, and ${digits[digits.length - 1]}`;
 }
 
-function buildLabel(step: SolvingStep, state: GridState): {
+function buildLabel(
+  step: SolvingStep,
+  state: GridState,
+): {
   label: string;
   regionCells: number[];
   relatedCells: number[];
@@ -209,7 +256,7 @@ function buildLabel(step: SolvingStep, state: GridState): {
     const digit = addUpdate.addedCandidate;
     const cell = addUpdate.index;
     return {
-      label: "Missing Candidate",
+      label: TEACH_STRATEGY.MISSING_CANDIDATE,
       regionCells: [cell],
       relatedCells: [],
       digit,
@@ -231,7 +278,7 @@ function buildLabel(step: SolvingStep, state: GridState): {
 
     if (candCount === 1) {
       return {
-        label: "Naked Single",
+        label: TEACH_LABEL.NAKED_SINGLE,
         regionCells: houses.length > 0 ? houses : [cell],
         relatedCells: pattern.filter((c) => c !== cell),
         digit,
@@ -245,7 +292,7 @@ function buildLabel(step: SolvingStep, state: GridState): {
 
     if (hidden) {
       return {
-        label: `Hidden Single (${houseLabel(hidden.kind)})`,
+        label: `${TEACH_LABEL.HIDDEN_SINGLE} (${HOUSE_LABEL[hidden.kind]})`,
         regionCells: houses.length > 0 ? houses : hidden.cells,
         relatedCells: relatedDigitCells(state, cell, digit),
         digit,
@@ -258,7 +305,7 @@ function buildLabel(step: SolvingStep, state: GridState): {
     }
 
     return {
-      label: step.strategy.replace(/ Strategy$/, ""),
+      label: techniqueName(step.strategy),
       regionCells: houses.length > 0 ? houses : [cell],
       relatedCells:
         pattern.length > 0
@@ -269,7 +316,7 @@ function buildLabel(step: SolvingStep, state: GridState): {
       digitCells: pattern.length > 0 ? pattern : [cell],
       patternDigits: [digit],
       elimMarks: [],
-      explanation: `Place ${digit} using ${step.strategy.replace(/ Strategy$/, "")}.`,
+      explanation: `Place ${digit} using ${techniqueName(step.strategy)}.`,
     };
   }
 
@@ -300,9 +347,9 @@ function buildLabel(step: SolvingStep, state: GridState): {
       .slice()
       .sort((a, b) => a - b);
 
-    if (step.strategy === "Impossible Candidate") {
+    if (step.strategy === TEACH_STRATEGY.IMPOSSIBLE_CANDIDATE) {
       return {
-        label: "Impossible Candidate",
+        label: TEACH_STRATEGY.IMPOSSIBLE_CANDIDATE,
         regionCells: elimCells,
         relatedCells: [],
         digit,
@@ -315,7 +362,7 @@ function buildLabel(step: SolvingStep, state: GridState): {
     }
 
     if (pattern.length > 0) {
-      const name = step.strategy.replace(/ Strategy$/, "");
+      const name = techniqueName(step.strategy);
       return {
         label: name,
         regionCells: houses.length > 0 ? houses : pattern,
@@ -325,23 +372,14 @@ function buildLabel(step: SolvingStep, state: GridState): {
         digitCells: pattern,
         patternDigits,
         elimMarks,
-        explanation:
-          name === "Two-String-Kite"
-            ? `Candidate ${digitList} forms a conjugate pair in a row and in a column that meet in the same box (the kite). At least one free end is true, so ${digitList} can be eliminated from cells that see both free ends.`
-            : name === "Pointing Elimination"
-              ? `In the marked box, candidate ${digitList} only appears in one line. That forces ${digitList} into that line inside the box, so ${digitList} can be removed from the rest of the line (red).`
-              : name === "Naked Pair" ||
-                  name === "Naked Triplet" ||
-                  name === "Naked Quadruple" ||
-                  name === "Hidden Pair" ||
-                  name.startsWith("Hidden")
-                ? `These cells form a ${name.toLowerCase()} on ${digitList}. Those digits are locked there, so remove ${digitList} from the other cells in the house (red).`
-                : `Eliminate candidate ${digitList} from the red cell(s) using ${name}. Green marks show the pattern that forces the removal.`,
+        explanation: (
+          ELIMINATION_EXPLANATION[step.strategy] ?? explainPatternElimination
+        )(name, digitList),
       };
     }
 
     return {
-      label: step.strategy.replace(/ Strategy$/, ""),
+      label: techniqueName(step.strategy),
       regionCells: houses.length > 0 ? houses : elimCells,
       relatedCells: pattern,
       digit,
@@ -349,7 +387,9 @@ function buildLabel(step: SolvingStep, state: GridState): {
       digitCells: pattern,
       patternDigits,
       elimMarks,
-      explanation: `Eliminate candidate ${digitList} from the red cell(s) using ${step.strategy.replace(/ Strategy$/, "")}.`,
+      explanation: `Eliminate candidate ${digitList} from the red cell(s) using ${techniqueName(
+        step.strategy,
+      )}.`,
     };
   }
 
@@ -419,13 +459,13 @@ function findIllegalHint(
       if (legalSet.has(d)) continue;
       const reason = illegalReason(board, i, d);
       const step: SolvingStep = {
-        strategy: "Impossible Candidate",
-        type: "elimination",
+        strategy: TEACH_STRATEGY.IMPOSSIBLE_CANDIDATE,
+        type: STEP_TYPE.ELIMINATION,
         updates: [{ index: i, eliminatedCandidate: d }],
       };
       const state = gridFromBoardAndCandidates(board, preview);
       return toTeachingHint(step, state, {
-        label: "Impossible Candidate",
+        label: TEACH_STRATEGY.IMPOSSIBLE_CANDIDATE,
         explanation: reason.explanation,
         relatedCells: reason.relatedCells,
         regionCells: reason.regionCells,
@@ -489,8 +529,8 @@ function findUnjustifiedMissingAdd(
       );
       const state = gridFromBoardAndCandidates(board, showLists);
       const step: SolvingStep = {
-        strategy: "Missing Candidate",
-        type: "add",
+        strategy: TEACH_STRATEGY.MISSING_CANDIDATE,
+        type: STEP_TYPE.ADD,
         updates: [{ index: i, addedCandidate: d }],
       };
       return toTeachingHint(step, state);
@@ -508,12 +548,12 @@ function findUnjustifiedMissingAdd(
 export function teachHint(
   board: Board,
   notesOrCandidates?: number[][],
-  mode: TeachMode = TEACH_MODE.open,
+  mode: TeachMode = TEACH_MODE.OPEN,
 ): TeachingHint | null {
   try {
     if (isComplete(stateFromTeachInput(board))) return null;
 
-    if (mode === TEACH_MODE.continue) {
+    if (mode === TEACH_MODE.CONTINUE) {
       const state = stateFromTeachInput(board, notesOrCandidates);
       if (isComplete(state)) return null;
       const found = findNextStep(state);
@@ -522,7 +562,8 @@ export function teachHint(
     }
 
     const legal = legalCandidatesFromBoard(board);
-    const notes = notesOrCandidates ?? Array.from({ length: CELL_COUNT }, () => []);
+    const notes =
+      notesOrCandidates ?? Array.from({ length: CELL_COUNT }, () => []);
     const preview = buildPreviewCandidates(board, notes);
 
     const illegal = findIllegalHint(board, notes, legal, preview);

@@ -1,8 +1,9 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { HOUSES, peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * Simple Colouring (single-digit conjugate colouring):
@@ -11,11 +12,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * - A cell seeing both colours → eliminate the digit there
  */
 export const simpleColouringTactic: Tactic = {
-  id: "simple-colouring",
-  title: "Simple Colouring Strategy",
+  id: TACTIC_ID.SIMPLE_COLOURING,
+  title: STRATEGY.SIMPLE_COLOURING,
   score: 180,
   rank: 4.5,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (let digit = 1; digit <= BOARD_SIZE; digit++) {
       const hit = colourDigit(state, digit);
@@ -94,7 +95,10 @@ function colourDigit(state: GridState, digit: number) {
             if (updates.length > 0) {
               const patternCells = [...compColour.keys()];
               return step(
-                { title: "Simple Colouring Strategy", type: "elimination" },
+                {
+                  title: STRATEGY.SIMPLE_COLOURING,
+                  type: STEP_TYPE.ELIMINATION,
+                },
                 updates,
                 {
                   patternCells,
@@ -127,7 +131,7 @@ function colourDigit(state: GridState, digit: number) {
     if (updates.length > 0) {
       const patternCells = [...compColour.keys()];
       return step(
-        { title: "Simple Colouring Strategy", type: "elimination" },
+        { title: STRATEGY.SIMPLE_COLOURING, type: STEP_TYPE.ELIMINATION },
         updates,
         {
           patternCells,

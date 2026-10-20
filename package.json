@@ -1,68 +1,104 @@
 {
   "name": "sudoku-core",
   "version": "4.0.0",
-  "description": "A typescript Sudoku package for generating, solving (step-by-step or all), and analyzing Sudoku boards with ease. Perfect for building Sudoku games and integrating Sudoku functionality into your applications.",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    }
-  },
-  "scripts": {
-    "prepare": "node -e \"try{require('husky').install()}catch(e){}\"",
-    "prepublishOnly": "pinst --disable",
-    "postpublish": "pinst --enable",
-    "build": "npm run build:cjs && npm run build:esm && npm run build:types",
-    "build:cjs": "node tools/cleanup cjs && tsc -p config/tsconfig.cjs.json",
-    "build:esm": "node tools/cleanup esm && tsc -p config/tsconfig.esm.json",
-    "build:umd": "node tools/cleanup umd && webpack --config config/webpack.config.js",
-    "build:types": "node tools/cleanup types && tsc -p config/tsconfig.types.json",
-    "clean": "node tools/cleanup",
-    "package": "npm run build && npm pack",
-    "test": "jest --no-cache --runInBand",
-    "test:cov": "jest --coverage --no-cache --runInBand",
-    "addscope": "node tools/packagejson name sudoku-core"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
+  "description": "Human-logic Sudoku engine for TypeScript: generate unique puzzles across 10 difficulty levels, solve step by step with 31 named techniques, rate difficulty, and teach hints. Zero dependencies.",
   "keywords": [
     "sudoku",
     "sudoku-generator",
     "sudoku-solver",
-    "typescript",
-    "javascript",
-    "sudoku-medium",
-    "sudoku-expert",
-    "sudoku-hard",
-    "sudoku-easy",
-    "game",
+    "sudoku-hint",
+    "sudoku-rating",
+    "human-solver",
+    "x-wing",
+    "swordfish",
+    "y-wing",
     "puzzle",
     "generator",
     "solver",
-    "analysis"
+    "typescript"
   ],
-  "author": "Komeil Mehranfar <komeil.mehranfar@gmail.com>",
-  "license": "MIT",
-  "homepage": "https://github.com/komeilmehranfar/sudoku-core",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:komeilmehranfar/sudoku-core.git"
-  },
+  "homepage": "https://github.com/komeilmehranfar/sudoku-core#readme",
   "bugs": {
     "url": "https://github.com/komeilmehranfar/sudoku-core/issues"
   },
-  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/komeilmehranfar/sudoku-core.git"
+  },
+  "license": "MIT",
+  "author": "Komeil Mehranfar <komeil.mehranfar@gmail.com>",
+  "sideEffects": false,
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "prepare": "node -e \"try{require('husky').install()}catch(e){}\"",
+    "build": "tsup",
+    "test": "jest --runInBand",
+    "test:cov": "jest --coverage --runInBand",
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "check:package": "publint --strict && attw --pack . --profile node16",
+    "size": "size-limit",
+    "docs": "typedoc",
+    "prepublishOnly": "npm run build"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "size-limit": [
+    {
+      "name": "ESM, full API",
+      "path": "dist/index.mjs",
+      "limit": "15 kB"
+    },
+    {
+      "name": "ESM, generate + solve",
+      "path": "dist/index.mjs",
+      "import": "{ generate, solve }",
+      "limit": "12 kB"
+    },
+    {
+      "name": "CJS",
+      "path": "dist/index.cjs",
+      "limit": "15 kB"
+    }
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
+    "@size-limit/preset-small-lib": "^14.1.0",
     "@types/jest": "^29.5.10",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
@@ -71,12 +107,13 @@
     "eslint-plugin-prettier": "^5.0.1",
     "husky": "^8.0.3",
     "jest": "^29.7.0",
-    "pinst": "^3.0.0",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.1.0",
+    "publint": "^0.3.25",
+    "size-limit": "^14.1.0",
     "ts-jest": "^29.1.1",
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.3.2",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "tsup": "^8.5.1",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.3.2"
   }
 }

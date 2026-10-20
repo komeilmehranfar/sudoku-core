@@ -1,0 +1,6 @@
+dist
+coverage
+docs/api
+.agents
+CHANGELOG.md
+package-lock.json

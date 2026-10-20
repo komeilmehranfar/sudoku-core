@@ -9,6 +9,7 @@ import {
 import type { SolvingStep } from "../types";
 import { TACTICS } from "./registry";
 import type { Tactic } from "./types";
+import { STEP_TYPE } from "../board/constants";
 
 export function applyStep(state: GridState, found: SolvingStep): void {
   for (const update of found.updates) {
@@ -35,12 +36,10 @@ export function findNextStep(
 
 /** Elimination tactics only — used when probing whether a missing mark is justified. */
 export const ELIMINATION_TACTICS: readonly Tactic[] = TACTICS.filter(
-  (t) => t.type === "elimination",
+  (t) => t.type === STEP_TYPE.ELIMINATION,
 );
 
-export function findNextElimination(
-  state: GridState,
-): SolvingStep | null {
+export function findNextElimination(state: GridState): SolvingStep | null {
   return findNextStep(state, ELIMINATION_TACTICS);
 }
 
@@ -77,26 +76,4 @@ export function walkthrough(
     state,
     stuck: !isComplete(state),
   };
-}
-
-/** Apply value-producing steps only until one placement (for hint UX). */
-export function hintStep(
-  initial: GridState,
-  tactics: readonly Tactic[] = TACTICS,
-  maxIterations = 40,
-): { board: GridState; steps: SolvingStep[] } | null {
-  const state = cloneGrid(initial);
-  const steps: SolvingStep[] = [];
-
-  for (let i = 0; i < maxIterations; i++) {
-    if (isComplete(state)) break;
-    const found = findNextStep(state, tactics);
-    if (!found) return null;
-    applyStep(state, found);
-    steps.push(found);
-    if (found.type === "value") {
-      return { board: state, steps };
-    }
-  }
-  return steps.length > 0 ? { board: state, steps } : null;
 }

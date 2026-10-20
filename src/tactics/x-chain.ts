@@ -1,8 +1,9 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { HOUSES, peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * X-Chain (open): strong–weak–strong… on one digit.
@@ -10,11 +11,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * Ends of an open chain → eliminate digit from cells seeing both ends.
  */
 export const xChainTactic: Tactic = {
-  id: "x-chain",
-  title: "X-Chain Strategy",
+  id: TACTIC_ID.X_CHAIN,
+  title: STRATEGY.X_CHAIN,
   score: 260,
   rank: 6.6,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (let digit = 1; digit <= BOARD_SIZE; digit++) {
       const strong = buildStrongLinks(state, digit);
@@ -37,7 +38,7 @@ export const xChainTactic: Tactic = {
             const updates = elimSeeingBoth(state, digit, start, end, path);
             if (updates.length > 0) {
               return step(
-                { title: "X-Chain Strategy", type: "elimination" },
+                { title: STRATEGY.X_CHAIN, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells: path,

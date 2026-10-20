@@ -1,18 +1,19 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * Y-Wing (XY-Wing): pivot XY, pincers XZ and YZ → eliminate Z from peers of both pincers.
  */
 export const yWingTactic: Tactic = {
-  id: "y-wing",
-  title: "Y-Wing Strategy",
+  id: TACTIC_ID.Y_WING,
+  title: STRATEGY.Y_WING,
   score: 140,
   rank: 4.2,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const bivalue: { index: number; digits: number[] }[] = [];
     for (let i = 0; i < CELL_COUNT; i++) {
@@ -59,7 +60,7 @@ export const yWingTactic: Tactic = {
           if (updates.length > 0) {
             const patternCells = [pivot.index, a.index, b.index];
             return step(
-              { title: "Y-Wing Strategy", type: "elimination" },
+              { title: STRATEGY.Y_WING, type: STEP_TYPE.ELIMINATION },
               updates,
               {
                 patternCells,

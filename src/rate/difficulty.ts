@@ -1,5 +1,18 @@
-import { DIFFICULTIES } from "../board/constants";
-import { TACTICS } from "../tactics/registry";
+import {
+  DIFFICULTIES,
+  DIFFICULTY_L1,
+  DIFFICULTY_L2,
+  DIFFICULTY_L3,
+  DIFFICULTY_L4,
+  DIFFICULTY_L5,
+  DIFFICULTY_L6,
+  DIFFICULTY_L7,
+  DIFFICULTY_L8,
+  DIFFICULTY_L9,
+  DIFFICULTY_L10,
+  STEP_TYPE,
+} from "../board/constants";
+import { TACTICS, tacticByTitle } from "../tactics/registry";
 import type { SolvingStep, Difficulty } from "../types";
 
 export interface RatingBreakdown {
@@ -18,16 +31,16 @@ export interface RatingBreakdown {
  * (e.g. naked-single grind ≠ L4, naked-pair grind ≠ L6).
  */
 const SCORE_BUMP: Record<Difficulty, number> = {
-  L1: 80,
-  L2: 150,
-  L3: 900,
-  L4: 700,
-  L5: 1100,
-  L6: 1400,
-  L7: 2000,
-  L8: 2600,
-  L9: 3400,
-  L10: Infinity,
+  [DIFFICULTY_L1]: 80,
+  [DIFFICULTY_L2]: 150,
+  [DIFFICULTY_L3]: 900,
+  [DIFFICULTY_L4]: 700,
+  [DIFFICULTY_L5]: 1100,
+  [DIFFICULTY_L6]: 1400,
+  [DIFFICULTY_L7]: 2000,
+  [DIFFICULTY_L8]: 2600,
+  [DIFFICULTY_L9]: 3400,
+  [DIFFICULTY_L10]: Infinity,
 };
 
 export function rateSteps(steps: SolvingStep[]): RatingBreakdown {
@@ -38,8 +51,8 @@ export function rateSteps(steps: SolvingStep[]): RatingBreakdown {
 
   for (const s of steps) {
     freq.set(s.strategy, (freq.get(s.strategy) ?? 0) + 1);
-    if (s.type === "value") placements += s.updates.length;
-    const tactic = TACTICS.find((t) => t.title === s.strategy);
+    if (s.type === STEP_TYPE.VALUE) placements += s.updates.length;
+    const tactic = tacticByTitle(s.strategy);
     if (tactic && tactic.rank >= hardestRank) {
       hardestRank = tactic.rank;
       hardestTechnique = tactic.title;
@@ -72,6 +85,19 @@ export function rateSteps(steps: SolvingStep[]): RatingBreakdown {
   };
 }
 
+/** Minimum hardest-technique rank for each band, hardest first (below 1.5 is L1). */
+const RANK_FLOOR: ReadonlyArray<readonly [number, Difficulty]> = [
+  [7.0, DIFFICULTY_L10],
+  [5.0, DIFFICULTY_L9],
+  [4.2, DIFFICULTY_L8],
+  [3.9, DIFFICULTY_L7],
+  [3.2, DIFFICULTY_L6],
+  [3.0, DIFFICULTY_L5],
+  [2.6, DIFFICULTY_L4],
+  [2.3, DIFFICULTY_L3],
+  [1.5, DIFFICULTY_L2],
+];
+
 /**
  * L1–L10 from hardest technique rank, with optional grind bump.
  *
@@ -80,33 +106,15 @@ export function rateSteps(steps: SolvingStep[]): RatingBreakdown {
  * L3  naked singles
  * L4  locked candidates (pointing)
  * L5  naked pair
- * L6  X-Wing / hidden pair / triples / quads
- * L7  turbot family / swordfish
- * L8  wings / ER / colouring / UR / finned X-Wing
- * L9  jellyfish / chains / BUG+1 / WXYZ
+ * L6  X-Wing / hidden pair / triples / quads / swordfish
+ * L7  turbot family (skyscraper, kite, crane)
+ * L8  wings (incl. WXYZ) / ER / colouring / UR / finned X-Wing
+ * L9  jellyfish / finned swordfish & jellyfish / BUG+1 / chains
  * L10 AIC / Medusa / Nishio
  */
 export function mapDifficulty(hardestRank: number, score: number): Difficulty {
   let level: Difficulty =
-    hardestRank >= 7.0
-      ? "L10"
-      : hardestRank >= 5.0
-        ? "L9"
-        : hardestRank >= 4.2
-          ? "L8"
-          : hardestRank >= 3.9
-            ? "L7"
-            : hardestRank >= 3.2
-              ? "L6"
-              : hardestRank >= 3.0
-                ? "L5"
-                : hardestRank >= 2.6
-                  ? "L4"
-                  : hardestRank >= 2.3
-                    ? "L3"
-                    : hardestRank >= 1.5
-                      ? "L2"
-                      : "L1";
+    RANK_FLOOR.find(([floor]) => hardestRank >= floor)?.[1] ?? DIFFICULTY_L1;
 
   if (score > SCORE_BUMP[level]) {
     const idx = difficultyIndex(level);

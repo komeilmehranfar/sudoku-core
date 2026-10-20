@@ -1,15 +1,16 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID, type Strategy } from "./names";
 
 /**
  * Hidden Triple / Quad ("Hidden Groups"):
  * N digits that appear only in N cells of a house → strip other candidates
  * from those cells.
  */
-function findHiddenGroup(state: GridState, size: 3 | 4, title: string) {
+function findHiddenGroup(state: GridState, size: 3 | 4, title: Strategy) {
   for (const group of HOUSES) {
     for (const house of group) {
       const digitCells: number[][] = Array.from({ length: 10 }, () => []);
@@ -48,15 +49,11 @@ function findHiddenGroup(state: GridState, size: 3 | 4, title: string) {
           }
         }
         if (updates.length > 0) {
-          return step(
-            { title, type: "elimination" },
-            updates,
-            {
-              patternCells: [...cells],
-              patternDigits: chosen,
-              regionCells: [...house],
-            },
-          );
+          return step({ title, type: STEP_TYPE.ELIMINATION }, updates, {
+            patternCells: [...cells],
+            patternDigits: chosen,
+            regionCells: [...house],
+          });
         }
       }
     }
@@ -83,38 +80,38 @@ function combinations(n: number, k: number): number[][] {
 }
 
 export const hiddenTripleTactic: Tactic = {
-  id: "hidden-triple",
-  title: "Hidden Triple Strategy",
+  id: TACTIC_ID.HIDDEN_TRIPLE,
+  title: STRATEGY.HIDDEN_TRIPLE,
   score: 100,
   rank: 3.5,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findHiddenGroup(state, 3, "Hidden Triple Strategy");
+    return findHiddenGroup(state, 3, STRATEGY.HIDDEN_TRIPLE);
   },
 };
 
 export const hiddenQuadTactic: Tactic = {
-  id: "hidden-quad",
-  title: "Hidden Quad Strategy",
+  id: TACTIC_ID.HIDDEN_QUAD,
+  title: STRATEGY.HIDDEN_QUAD,
   score: 140,
   rank: 3.7,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findHiddenGroup(state, 4, "Hidden Quad Strategy");
+    return findHiddenGroup(state, 4, STRATEGY.HIDDEN_QUAD);
   },
 };
 
 /** "Hidden Groups" entry point — try triple then quad. */
 export const hiddenGroupsTactic: Tactic = {
-  id: "hidden-groups",
-  title: "Hidden Groups Strategy",
+  id: TACTIC_ID.HIDDEN_GROUPS,
+  title: STRATEGY.HIDDEN_GROUPS,
   score: 100,
   rank: 3.5,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
     return (
-      findHiddenGroup(state, 3, "Hidden Groups Strategy") ??
-      findHiddenGroup(state, 4, "Hidden Groups Strategy")
+      findHiddenGroup(state, 3, STRATEGY.HIDDEN_GROUPS) ??
+      findHiddenGroup(state, 4, STRATEGY.HIDDEN_GROUPS)
     );
   },
 };

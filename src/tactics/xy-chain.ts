@@ -1,8 +1,9 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * XY-Chain: chain of bivalue cells. Consecutive cells share a house and a
@@ -10,11 +11,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * ¬Z@start ⇒ Z@end, then Z can be eliminated from common peers.
  */
 export const xyChainTactic: Tactic = {
-  id: "xy-chain",
-  title: "XY-Chain Strategy",
+  id: TACTIC_ID.XY_CHAIN,
+  title: STRATEGY.XY_CHAIN,
   score: 300,
   rank: 6.8,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const bivalue: { index: number; digits: [number, number] }[] = [];
     for (let i = 0; i < CELL_COUNT; i++) {
@@ -52,7 +53,7 @@ export const xyChainTactic: Tactic = {
             if (updates.length > 0 && path.length < bestLen) {
               bestLen = path.length;
               best = step(
-                { title: "XY-Chain Strategy", type: "elimination" },
+                { title: STRATEGY.XY_CHAIN, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells: path,

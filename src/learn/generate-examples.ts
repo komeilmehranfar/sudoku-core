@@ -7,12 +7,28 @@ import {
   type GridState,
 } from "../board/board";
 import { digitsFromMask } from "../board/candidates";
-import { CELL_COUNT, DIFFICULTIES } from "../board/constants";
+import {
+  CELL_COUNT,
+  DIFFICULTIES,
+  DIFFICULTY_L5,
+  DIFFICULTY_L6,
+  DIFFICULTY_L7,
+  DIFFICULTY_L8,
+  DIFFICULTY_L9,
+  DIFFICULTY_L10,
+  STEP_TYPE,
+} from "../board/constants";
 import { generatePuzzle } from "../generate/generate";
 import { applyStep, findNextStep, walkthrough } from "../tactics/apply";
 import { tacticByTitle } from "../tactics/registry";
 import { isUniqueSolution } from "../uniqueness/count-solutions";
 import type { Board, Difficulty, SolvingStep, Update } from "../types";
+import {
+  STRATEGY,
+  TACTIC_ID,
+  techniqueName,
+  type Strategy,
+} from "../tactics/names";
 
 export interface LearnExample {
   /** 81 values; 0 = empty (mid-solve position, before the tactic step) */
@@ -32,43 +48,49 @@ export interface LearnExample {
 
 export interface LearnLessonTarget {
   id: string;
-  strategy: string;
+  strategy: Strategy;
 }
+
+/** Lesson slugs that differ from the tactic id they teach. */
+const LESSON_ID = {
+  POINTING: "pointing",
+  MEDUSA: "medusa",
+} as const;
 
 /**
  * All illustrated learn targets — order matches engine TACTICS difficulty.
  * Must stay in sync with LEARN_LESSONS in lib/learn/lessons.ts.
  */
 export const LEARN_TARGETS: LearnLessonTarget[] = [
-  { id: "open-singles", strategy: "Open Singles Strategy" },
-  { id: "naked-single", strategy: "Visual Elimination Strategy" },
-  { id: "hidden-single", strategy: "Single Candidate Strategy" },
-  { id: "naked-pair", strategy: "Naked Pair Strategy" },
-  { id: "pointing", strategy: "Pointing Elimination Strategy" },
-  { id: "hidden-pair", strategy: "Hidden Pair Strategy" },
-  { id: "hidden-groups", strategy: "Hidden Groups Strategy" },
-  { id: "x-wing", strategy: "X-Wing Strategy" },
-  { id: "skyscraper", strategy: "Skyscraper Strategy" },
-  { id: "two-string-kite", strategy: "Two-String-Kite Strategy" },
-  { id: "crane", strategy: "Crane Strategy" },
-  { id: "swordfish", strategy: "Swordfish Strategy" },
-  { id: "y-wing", strategy: "Y-Wing Strategy" },
-  { id: "xyz-wing", strategy: "XYZ-Wing Strategy" },
-  { id: "w-wing", strategy: "W-Wing Strategy" },
-  { id: "empty-rectangle", strategy: "Empty Rectangle Strategy" },
-  { id: "unique-rectangle", strategy: "Unique Rectangle Strategy" },
-  { id: "simple-colouring", strategy: "Simple Colouring Strategy" },
-  { id: "finned-x-wing", strategy: "Finned X-Wing Strategy" },
-  { id: "wxyz-wing", strategy: "WXYZ-Wing Strategy" },
-  { id: "finned-swordfish", strategy: "Finned Swordfish Strategy" },
-  { id: "jellyfish", strategy: "Jellyfish Strategy" },
-  { id: "bug-plus-one", strategy: "BUG+1 Strategy" },
-  { id: "finned-jellyfish", strategy: "Finned Jellyfish Strategy" },
-  { id: "x-chain", strategy: "X-Chain Strategy" },
-  { id: "xy-chain", strategy: "XY-Chain Strategy" },
-  { id: "medusa", strategy: "3D-Medusa Strategy" },
-  { id: "aic", strategy: "AIC Strategy" },
-  { id: "nishio", strategy: "Nishio Forcing Chain Strategy" },
+  { id: TACTIC_ID.OPEN_SINGLES, strategy: STRATEGY.OPEN_SINGLES },
+  { id: TACTIC_ID.NAKED_SINGLE, strategy: STRATEGY.NAKED_SINGLE },
+  { id: TACTIC_ID.HIDDEN_SINGLE, strategy: STRATEGY.HIDDEN_SINGLE },
+  { id: TACTIC_ID.NAKED_PAIR, strategy: STRATEGY.NAKED_PAIR },
+  { id: LESSON_ID.POINTING, strategy: STRATEGY.POINTING_ELIMINATION },
+  { id: TACTIC_ID.HIDDEN_PAIR, strategy: STRATEGY.HIDDEN_PAIR },
+  { id: TACTIC_ID.HIDDEN_GROUPS, strategy: STRATEGY.HIDDEN_GROUPS },
+  { id: TACTIC_ID.X_WING, strategy: STRATEGY.X_WING },
+  { id: TACTIC_ID.SKYSCRAPER, strategy: STRATEGY.SKYSCRAPER },
+  { id: TACTIC_ID.TWO_STRING_KITE, strategy: STRATEGY.TWO_STRING_KITE },
+  { id: TACTIC_ID.CRANE, strategy: STRATEGY.CRANE },
+  { id: TACTIC_ID.SWORDFISH, strategy: STRATEGY.SWORDFISH },
+  { id: TACTIC_ID.Y_WING, strategy: STRATEGY.Y_WING },
+  { id: TACTIC_ID.XYZ_WING, strategy: STRATEGY.XYZ_WING },
+  { id: TACTIC_ID.W_WING, strategy: STRATEGY.W_WING },
+  { id: TACTIC_ID.EMPTY_RECTANGLE, strategy: STRATEGY.EMPTY_RECTANGLE },
+  { id: TACTIC_ID.UNIQUE_RECTANGLE, strategy: STRATEGY.UNIQUE_RECTANGLE },
+  { id: TACTIC_ID.SIMPLE_COLOURING, strategy: STRATEGY.SIMPLE_COLOURING },
+  { id: TACTIC_ID.FINNED_X_WING, strategy: STRATEGY.FINNED_X_WING },
+  { id: TACTIC_ID.WXYZ_WING, strategy: STRATEGY.WXYZ_WING },
+  { id: TACTIC_ID.FINNED_SWORDFISH, strategy: STRATEGY.FINNED_SWORDFISH },
+  { id: TACTIC_ID.JELLYFISH, strategy: STRATEGY.JELLYFISH },
+  { id: TACTIC_ID.BUG_PLUS_ONE, strategy: STRATEGY.BUG_PLUS_ONE },
+  { id: TACTIC_ID.FINNED_JELLYFISH, strategy: STRATEGY.FINNED_JELLYFISH },
+  { id: TACTIC_ID.X_CHAIN, strategy: STRATEGY.X_CHAIN },
+  { id: TACTIC_ID.XY_CHAIN, strategy: STRATEGY.XY_CHAIN },
+  { id: LESSON_ID.MEDUSA, strategy: STRATEGY.MEDUSA_3D },
+  { id: TACTIC_ID.AIC, strategy: STRATEGY.AIC },
+  { id: TACTIC_ID.NISHIO, strategy: STRATEGY.NISHIO },
 ];
 
 /** @deprecated use LEARN_TARGETS */
@@ -163,8 +185,7 @@ export function generateAnySolvablePuzzle(
   if (lastValid) return lastValid;
 
   // Fallback: rated generator at any difficulty
-  const difficulty =
-    DIFFICULTIES[seed % DIFFICULTIES.length] ?? ("L5" as Difficulty);
+  const difficulty = DIFFICULTIES[seed % DIFFICULTIES.length] ?? DIFFICULTY_L5;
   return generatePuzzle({
     difficulty,
     seed,
@@ -184,7 +205,7 @@ function snapshotCandidates(state: GridState): number[][] {
 }
 
 function buildCaption(step: SolvingStep): string {
-  const name = step.strategy.replace(/ Strategy$/, "");
+  const name = techniqueName(step.strategy);
   const fills = step.updates.filter((u) => u.filledValue != null);
   const elims = step.updates.filter((u) => u.eliminatedCandidate != null);
 
@@ -194,9 +215,9 @@ function buildCaption(step: SolvingStep): string {
   }
 
   if (elims.length > 0) {
-    const digits = [
-      ...new Set(elims.map((u) => u.eliminatedCandidate!)),
-    ].sort((a, b) => a - b);
+    const digits = [...new Set(elims.map((u) => u.eliminatedCandidate!))].sort(
+      (a, b) => a - b,
+    );
     const label =
       digits.length === 1
         ? String(digits[0])
@@ -204,7 +225,9 @@ function buildCaption(step: SolvingStep): string {
           ? `${digits[0]} and ${digits[1]}`
           : digits.join(", ");
     const cells = new Set(elims.map((u) => u.index)).size;
-    return `${name}: remove ${label} from ${cells} cell${cells === 1 ? "" : "s"}`;
+    return `${name}: remove ${label} from ${cells} cell${
+      cells === 1 ? "" : "s"
+    }`;
   }
 
   return name;
@@ -266,7 +289,7 @@ export function mineExamplesFromPuzzle(
 
     // Showcase only on elim steps (skips cheap early singles spam) and
     // only for strategies we still need.
-    if (showcaseStrategies?.size && next.type === "elimination") {
+    if (showcaseStrategies?.size && next.type === STEP_TYPE.ELIMINATION) {
       for (const strategy of showcaseStrategies) {
         if (out.has(strategy)) continue;
         const tactic = tacticByTitle(strategy);
@@ -300,49 +323,66 @@ export interface GenerateLessonExamplesOptions {
   onProgress?: (message: string) => void;
 }
 
-type HuntTier = "common" | "mid" | "rare" | "ultra";
+const HUNT_TIER = {
+  COMMON: "common",
+  MID: "mid",
+  RARE: "rare",
+  ULTRA: "ultra",
+} as const;
 
-const HUNT_TIER: Record<string, HuntTier> = {
-  "open-singles": "common",
-  "naked-single": "common",
-  "hidden-single": "common",
-  "naked-pair": "common",
-  pointing: "common",
-  "hidden-pair": "mid",
-  "hidden-groups": "rare",
-  "x-wing": "mid",
-  skyscraper: "mid",
-  "two-string-kite": "mid",
-  crane: "rare",
-  swordfish: "rare",
-  "y-wing": "mid",
-  "xyz-wing": "rare",
-  "w-wing": "rare",
-  "empty-rectangle": "rare",
-  "unique-rectangle": "rare",
-  "simple-colouring": "rare",
-  "finned-x-wing": "rare",
-  "wxyz-wing": "ultra",
-  "finned-swordfish": "ultra",
-  jellyfish: "ultra",
-  "bug-plus-one": "ultra",
-  "finned-jellyfish": "ultra",
-  "x-chain": "rare",
-  "xy-chain": "rare",
-  medusa: "ultra",
-  aic: "ultra",
-  nishio: "ultra",
+type HuntTier = (typeof HUNT_TIER)[keyof typeof HUNT_TIER];
+
+const LESSON_HUNT_TIER: Record<string, HuntTier> = {
+  [TACTIC_ID.OPEN_SINGLES]: HUNT_TIER.COMMON,
+  [TACTIC_ID.NAKED_SINGLE]: HUNT_TIER.COMMON,
+  [TACTIC_ID.HIDDEN_SINGLE]: HUNT_TIER.COMMON,
+  [TACTIC_ID.NAKED_PAIR]: HUNT_TIER.COMMON,
+  [LESSON_ID.POINTING]: HUNT_TIER.COMMON,
+  [TACTIC_ID.HIDDEN_PAIR]: HUNT_TIER.MID,
+  [TACTIC_ID.HIDDEN_GROUPS]: HUNT_TIER.RARE,
+  [TACTIC_ID.X_WING]: HUNT_TIER.MID,
+  [TACTIC_ID.SKYSCRAPER]: HUNT_TIER.MID,
+  [TACTIC_ID.TWO_STRING_KITE]: HUNT_TIER.MID,
+  [TACTIC_ID.CRANE]: HUNT_TIER.RARE,
+  [TACTIC_ID.SWORDFISH]: HUNT_TIER.RARE,
+  [TACTIC_ID.Y_WING]: HUNT_TIER.MID,
+  [TACTIC_ID.XYZ_WING]: HUNT_TIER.RARE,
+  [TACTIC_ID.W_WING]: HUNT_TIER.RARE,
+  [TACTIC_ID.EMPTY_RECTANGLE]: HUNT_TIER.RARE,
+  [TACTIC_ID.UNIQUE_RECTANGLE]: HUNT_TIER.RARE,
+  [TACTIC_ID.SIMPLE_COLOURING]: HUNT_TIER.RARE,
+  [TACTIC_ID.FINNED_X_WING]: HUNT_TIER.RARE,
+  [TACTIC_ID.WXYZ_WING]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.FINNED_SWORDFISH]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.JELLYFISH]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.BUG_PLUS_ONE]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.FINNED_JELLYFISH]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.X_CHAIN]: HUNT_TIER.RARE,
+  [TACTIC_ID.XY_CHAIN]: HUNT_TIER.RARE,
+  [LESSON_ID.MEDUSA]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.AIC]: HUNT_TIER.ULTRA,
+  [TACTIC_ID.NISHIO]: HUNT_TIER.ULTRA,
 };
 
 const TIER_ATTEMPTS: Record<HuntTier, number> = {
-  common: 200,
-  mid: 1200,
-  rare: 5000,
-  ultra: 8000,
+  [HUNT_TIER.COMMON]: 200,
+  [HUNT_TIER.MID]: 1200,
+  [HUNT_TIER.RARE]: 5000,
+  [HUNT_TIER.ULTRA]: 8000,
 };
 
-const HARD_DIFFS: Difficulty[] = ["L6", "L7", "L8", "L9", "L10"];
-const ULTRA_DIFFS: Difficulty[] = ["L8", "L9", "L10"];
+const HARD_DIFFS: Difficulty[] = [
+  DIFFICULTY_L6,
+  DIFFICULTY_L7,
+  DIFFICULTY_L8,
+  DIFFICULTY_L9,
+  DIFFICULTY_L10,
+];
+const ULTRA_DIFFS: Difficulty[] = [
+  DIFFICULTY_L8,
+  DIFFICULTY_L9,
+  DIFFICULTY_L10,
+];
 
 function strategyToLessonId(): Map<string, string> {
   return new Map(LEARN_TARGETS.map((t) => [t.strategy, t.id]));
@@ -375,7 +415,7 @@ export function generateExamplesForTactic(
   target: LearnLessonTarget,
   options: GenerateLessonExamplesOptions = {},
 ): LearnExample[] {
-  const tier = HUNT_TIER[target.id] ?? "rare";
+  const tier = LESSON_HUNT_TIER[target.id] ?? HUNT_TIER.RARE;
   const {
     count = 3,
     maxAttempts = TIER_ATTEMPTS[tier],
@@ -383,7 +423,7 @@ export function generateExamplesForTactic(
     onProgress,
   } = options;
 
-  const preferHard = tier !== "common";
+  const preferHard = tier !== HUNT_TIER.COMMON;
   const found: LearnExample[] = [];
   const keys = new Set<string>();
 
@@ -400,7 +440,9 @@ export function generateExamplesForTactic(
     } catch {
       if (attempt % 50 === 0) {
         onProgress?.(
-          `${target.id}: generate failed (attempt ${attempt + 1}, seed ${seed})`,
+          `${target.id}: generate failed (attempt ${
+            attempt + 1
+          }, seed ${seed})`,
         );
       }
       continue;
@@ -410,7 +452,9 @@ export function generateExamplesForTactic(
     if (!example) {
       if (preferHard && attempt % 100 === 0) {
         onProgress?.(
-          `${target.id}: still searching… attempt ${attempt + 1}/${maxAttempts}`,
+          `${target.id}: still searching… attempt ${
+            attempt + 1
+          }/${maxAttempts}`,
         );
       }
       continue;
@@ -421,7 +465,9 @@ export function generateExamplesForTactic(
     keys.add(key);
     found.push(example);
     onProgress?.(
-      `${target.id}: found ${found.length}/${count} (attempt ${attempt + 1}, seed ${seed})`,
+      `${target.id}: found ${found.length}/${count} (attempt ${
+        attempt + 1
+      }, seed ${seed})`,
     );
   }
 
@@ -492,9 +538,12 @@ export function fillMissingLearnExamples(
 
     // Prefer natural next-step hits; also showcase-hunt still-missing rares
     const needShowcase = new Set(
-      left.filter((t) => (HUNT_TIER[t.id] ?? "rare") !== "common").map(
-        (t) => t.strategy,
-      ),
+      left
+        .filter(
+          (t) =>
+            (LESSON_HUNT_TIER[t.id] ?? HUNT_TIER.RARE) !== HUNT_TIER.COMMON,
+        )
+        .map((t) => t.strategy),
     );
     const mined = mineExamplesFromPuzzle(puzzle, needShowcase);
     let added = 0;
@@ -518,7 +567,9 @@ export function fillMissingLearnExamples(
       onUpdate?.(lessons);
     } else if (attempt % 200 === 0) {
       onProgress?.(
-        `… attempt ${attempt + 1}/${maxAttempts}, still need: ${left.map((t) => t.id).join(", ")}`,
+        `… attempt ${attempt + 1}/${maxAttempts}, still need: ${left
+          .map((t) => t.id)
+          .join(", ")}`,
       );
     }
   }

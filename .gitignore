@@ -117,3 +117,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Generated API reference (npm run docs)
+docs/api/
+
+# macOS
+.DS_Store

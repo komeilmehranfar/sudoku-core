@@ -1,8 +1,9 @@
-import { BOARD_SIZE, CELL_COUNT } from "../board/constants";
+import { BOARD_SIZE, CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES, peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 type NodeKey = string; // `${cell}:${digit}`
 
@@ -21,11 +22,11 @@ function parse(k: NodeKey): { cell: number; digit: number } {
  * Apply common Medusa elimination rules (1–5).
  */
 export const medusa3dTactic: Tactic = {
-  id: "3d-medusa",
-  title: "3D-Medusa Strategy",
+  id: TACTIC_ID.MEDUSA_3D,
+  title: STRATEGY.MEDUSA_3D,
   score: 320,
   rank: 7.2,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const adj = new Map<NodeKey, NodeKey[]>();
     const add = (a: NodeKey, b: NodeKey) => {
@@ -94,11 +95,9 @@ export const medusa3dTactic: Tactic = {
 
       const updates = applyMedusaRules(state, component, colour);
       if (updates.length > 0) {
-        const patternCells = [
-          ...new Set(component.map((k) => parse(k).cell)),
-        ];
+        const patternCells = [...new Set(component.map((k) => parse(k).cell))];
         return step(
-          { title: "3D-Medusa Strategy", type: "elimination" },
+          { title: STRATEGY.MEDUSA_3D, type: STEP_TYPE.ELIMINATION },
           updates,
           {
             patternCells,

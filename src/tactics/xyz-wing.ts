@@ -1,19 +1,20 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { peersOf } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * XYZ-Wing: pivot XYZ (3 candidates), pincers XZ and YZ →
  * eliminate Z from cells that see both pincers (and usually the pivot).
  */
 export const xyzWingTactic: Tactic = {
-  id: "xyz-wing",
-  title: "XYZ-Wing Strategy",
+  id: TACTIC_ID.XYZ_WING,
+  title: STRATEGY.XYZ_WING,
   score: 180,
   rank: 4.4,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const cells: { index: number; digits: number[] }[] = [];
     for (let i = 0; i < CELL_COUNT; i++) {
@@ -73,7 +74,7 @@ export const xyzWingTactic: Tactic = {
             if (updates.length > 0) {
               const patternCells = [pivot.index, a.index, b.index];
               return step(
-                { title: "XYZ-Wing Strategy", type: "elimination" },
+                { title: STRATEGY.XYZ_WING, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells,

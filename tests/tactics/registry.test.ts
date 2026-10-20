@@ -28,6 +28,11 @@ function loadState(puzzle: string) {
 }
 
 describe("tactics / registry", () => {
+  it("orders TACTICS by rank so the solver always takes the easiest step", () => {
+    const ranks = TACTICS.map((t) => t.rank);
+    expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+  });
+
   it("every registered tactic has a board fixture", () => {
     const fixtureIds = new Set(REGISTRY_BOARDS.map((f) => f.tacticId));
     const missing = TACTICS.filter((t) => !fixtureIds.has(t.id)).map(
@@ -37,7 +42,7 @@ describe("tactics / registry", () => {
   });
 
   it("fixture ids match registered tactics (no orphans)", () => {
-    const registered = new Set(TACTICS.map((t) => t.id));
+    const registered = new Set<string>(TACTICS.map((t) => t.id));
     const orphans = REGISTRY_BOARDS.filter(
       (f) => !registered.has(f.tacticId),
     ).map((f) => f.tacticId);
