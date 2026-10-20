@@ -16,7 +16,7 @@ export function loadProjectEuler96(): { id: string; board: Board }[] {
   const file = path.join(__dirname, "project-euler-96.txt");
   const lines = fs.readFileSync(file, "utf8").trim().split(/\r?\n/);
   const puzzles: { id: string; board: Board }[] = [];
-  for (let i = 0; i < lines.length; ) {
+  for (let i = 0; i < lines.length;) {
     const header = lines[i++];
     const rows = lines.slice(i, i + 9).join("");
     i += 9;
