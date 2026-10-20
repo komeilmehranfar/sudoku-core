@@ -2,10 +2,13 @@ name: Release
 
 # release-please opens a "chore(main): release x.y.z" PR from Conventional Commits.
 # Merging that PR tags the release, creates the GitHub release, and publishes to npm.
+# `workflow_dispatch` lets you retry the publish jobs without a new release
+# (release-please finds nothing new to release, so its output stays false).
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,7 +30,7 @@ jobs:
 
   publish:
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,7 +41,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
+          # No registry-url here: it makes setup-node write an _authToken
+          # line to .npmrc even with no token, which stops npm from trying
+          # OIDC trusted publishing at all. The package is unscoped, so npm
+          # already publishes to registry.npmjs.org by default.
           cache: npm
       - run: npm ci
       - run: npm test
@@ -50,7 +56,7 @@ jobs:
   # That registry requires an owner scope; npm keeps the unscoped name.
   publish-github-packages:
     needs: [release-please, publish]
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
