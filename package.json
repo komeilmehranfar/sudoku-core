@@ -1,6 +1,6 @@
 {
   "name": "sudoku-core",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Human-logic Sudoku engine for TypeScript: generate unique puzzles across 10 difficulty levels, solve step by step with 31 named techniques, rate difficulty, and teach hints. Zero dependencies.",
   "keywords": [
     "sudoku",
