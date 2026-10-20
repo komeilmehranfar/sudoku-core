@@ -3,6 +3,9 @@ module.exports = {
     "**/__tests__/**/*.+(ts|tsx|js)",
     "**/?(*.)+(spec|test).+(ts|tsx|js)",
   ],
+  testPathIgnorePatterns: ["/node_modules/", "/dist/", "/playground/"],
+  collectCoverageFrom: ["src/**/*.ts"],
+  coverageReporters: ["text-summary", "lcov"],
   transform: {
     "^.+\\.(ts|tsx)$": [
       "ts-jest",
@@ -10,7 +13,5 @@ module.exports = {
         tsconfig: "tsconfig.test.json",
       },
     ],
-    "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$":
-      "./config/fileTransformer.js",
   },
 };
