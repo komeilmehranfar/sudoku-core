@@ -102,7 +102,7 @@
     "@types/jest": "^29.5.10",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
-    "eslint": "^8.55.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.0.1",
     "husky": "^8.0.3",
