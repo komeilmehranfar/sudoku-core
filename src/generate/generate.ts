@@ -6,10 +6,22 @@ import {
   placeValue,
   type GridState,
 } from "../board/board";
-import { CELL_COUNT, DIFFICULTIES } from "../board/constants";
+import {
+  CELL_COUNT,
+  DIFFICULTY_L1,
+  DIFFICULTY_L2,
+  DIFFICULTY_L3,
+  DIFFICULTY_L4,
+  DIFFICULTY_L5,
+  DIFFICULTY_L6,
+  DIFFICULTY_L7,
+  DIFFICULTY_L8,
+  DIFFICULTY_L9,
+  DIFFICULTY_L10,
+} from "../board/constants";
 import { digitsFromMask } from "../board/candidates";
 import { walkthrough } from "../tactics/apply";
-import { isAtLeast, isAtMost, rateSteps } from "../rate/difficulty";
+import { isAtMost, rateSteps } from "../rate/difficulty";
 import { isUniqueSolution } from "../uniqueness/count-solutions";
 import type { Board, Difficulty } from "../types";
 
@@ -61,147 +73,84 @@ function fillCompleteGrid(random: RandomFn): GridState {
 }
 
 /** Fewer clues as difficulty rises (soft target while digging). */
-function clueTarget(difficulty: Difficulty): number {
-  const targets: Record<Difficulty, number> = {
-    L1: 42,
-    L2: 38,
-    L3: 34,
-    L4: 30,
-    L5: 28,
-    L6: 26,
-    L7: 24,
-    L8: 22,
-    L9: 21,
-    L10: 20,
-  };
-  return targets[difficulty];
-}
+const CLUE_TARGET: Record<Difficulty, number> = {
+  [DIFFICULTY_L1]: 42,
+  [DIFFICULTY_L2]: 38,
+  [DIFFICULTY_L3]: 34,
+  [DIFFICULTY_L4]: 30,
+  [DIFFICULTY_L5]: 28,
+  [DIFFICULTY_L6]: 26,
+  [DIFFICULTY_L7]: 24,
+  [DIFFICULTY_L8]: 22,
+  [DIFFICULTY_L9]: 21,
+  [DIFFICULTY_L10]: 20,
+};
 
-/**
- * Only L1 may soft-accept an easier puzzle (open-singles floor).
- * L2+ must not slip softer than asked.
- */
-function acceptsEasier(difficulty: Difficulty): boolean {
-  return difficulty === "L1";
-}
-
-function difficultyIndexLocal(d: Difficulty): number {
-  return DIFFICULTIES.indexOf(d);
-}
-
-/** Dig may briefly overshoot by one band; final accept prefers exact. */
-function maxAllowed(difficulty: Difficulty): Difficulty {
-  const idx = difficultyIndexLocal(difficulty);
-  return DIFFICULTIES[Math.min(idx + 1, DIFFICULTIES.length - 1)]!;
-}
-
+/** Options for `generate`. */
 export interface GenerateOptions {
-  difficulty: Difficulty;
-  /** Wall-clock budget in ms */
+  /** Wall-clock budget in ms (default 16000). */
   timeoutMs?: number;
+  /** Fresh grids to dig before giving up (default 500; each takes ~30 ms). */
   maxAttempts?: number;
   /** Optional seed for deterministic puzzles (e.g. daily challenge). */
   seed?: number;
 }
 
+export interface GeneratePuzzleOptions extends GenerateOptions {
+  difficulty: Difficulty;
+}
+
+/** Difficulty of a unique board the human-logic solver can finish, else null. */
+function humanRating(grid: GridState, board: Board): Difficulty | null {
+  if (!isUniqueSolution(board)) return null;
+  const path = walkthrough(grid);
+  return path.solved ? rateSteps(path.steps).difficulty : null;
+}
+
 /**
- * Generate a unique, human-solvable puzzle matching the L1–L10 difficulty band.
+ * Generate a unique, human-solvable puzzle rated exactly `difficulty`.
+ *
+ * Digs clues out of a random full grid, undoing any removal that breaks
+ * uniqueness, needs guessing, or rates harder than asked. It keeps digging
+ * while the puzzle is still too easy, and stops at the clue target once the
+ * band is reached.
  */
-export function generatePuzzle(options: GenerateOptions): Board {
-  const { difficulty, timeoutMs = 16_000, maxAttempts = 80, seed } = options;
-  const random =
-    seed === undefined ? Math.random : mulberry32(seed >>> 0);
+export function generatePuzzle(options: GeneratePuzzleOptions): Board {
+  const { difficulty, timeoutMs = 16_000, maxAttempts = 500, seed } = options;
+  const random = seed === undefined ? Math.random : mulberry32(seed >>> 0);
   const started = Date.now();
-  /** Exact band snapshot captured mid-dig (before further removals soften it). */
-  let exactFallback: Board | null = null;
-  /** Softer than asked — only used when acceptsEasier (L1). */
-  let softerFallback: Board | null = null;
-  /** Harder than asked — last resort so we never under-shoot L2+. */
-  let harderFallback: Board | null = null;
+  const outOfTime = () => Date.now() - started > timeoutMs;
+  const targetClues = CLUE_TARGET[difficulty];
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    if (Date.now() - started > timeoutMs) break;
+  for (let attempt = 0; attempt < maxAttempts && !outOfTime(); attempt++) {
+    const grid = fillCompleteGrid(random);
+    let clues = CELL_COUNT;
+    /** Sparsest board seen at exactly the requested band in this dig. */
+    let exact: Board | null = null;
 
-    const filled = fillCompleteGrid(random);
-    const order = shuffle([...Array(CELL_COUNT).keys()], random);
-    const targetClues = clueTarget(difficulty);
-    let removals = CELL_COUNT - targetClues;
+    for (const cellIndex of shuffle([...Array(CELL_COUNT).keys()], random)) {
+      if (outOfTime()) break;
 
-    for (const cellIndex of order) {
-      if (removals <= 0) break;
-      if (Date.now() - started > timeoutMs) break;
+      const digit = grid.values[cellIndex];
+      clearValue(grid, cellIndex);
+      const board = boardToPublic(grid);
+      const rating = humanRating(grid, board);
 
-      const digit = filled.values[cellIndex];
-      if (digit === 0) continue;
-
-      clearValue(filled, cellIndex);
-      const board = boardToPublic(filled);
-
-      if (!isUniqueSolution(board)) {
-        placeValue(filled, cellIndex, digit);
+      if (rating === null || !isAtMost(rating, difficulty)) {
+        placeValue(grid, cellIndex, digit);
         continue;
       }
 
-      const path = walkthrough(filled);
-      if (!path.solved) {
-        placeValue(filled, cellIndex, digit);
-        continue;
-      }
-
-      const rating = rateSteps(path.steps);
-      if (!isAtMost(rating.difficulty, maxAllowed(difficulty))) {
-        placeValue(filled, cellIndex, digit);
-        continue;
-      }
-
-      removals--;
-      if (
-        isAtLeast(rating.difficulty, difficulty) &&
-        isAtMost(rating.difficulty, difficulty)
-      ) {
-        exactFallback = board;
-      } else if (
-        isAtLeast(rating.difficulty, difficulty) &&
-        isAtMost(rating.difficulty, maxAllowed(difficulty))
-      ) {
-        harderFallback = board;
-      } else if (acceptsEasier(difficulty)) {
-        softerFallback = board;
+      clues--;
+      if (rating === difficulty) {
+        exact = board;
+        if (clues <= targetClues) return board;
       }
     }
 
-    const puzzle = boardToPublic(filled);
-    const path = walkthrough(filled);
-    if (!path.solved || !isUniqueSolution(puzzle)) continue;
-
-    const rating = rateSteps(path.steps);
-    if (
-      isAtLeast(rating.difficulty, difficulty) &&
-      isAtMost(rating.difficulty, difficulty)
-    ) {
-      return puzzle;
-    }
-
-    if (
-      isAtLeast(rating.difficulty, difficulty) &&
-      isAtMost(rating.difficulty, maxAllowed(difficulty))
-    ) {
-      harderFallback = puzzle;
-      continue;
-    }
-
-    if (acceptsEasier(difficulty) && isAtMost(rating.difficulty, difficulty)) {
-      return puzzle;
-    }
-
-    if (acceptsEasier(difficulty)) {
-      softerFallback = puzzle;
-    }
+    if (exact) return exact;
   }
 
-  if (exactFallback) return exactFallback;
-  if (harderFallback) return harderFallback;
-  if (softerFallback) return softerFallback;
   throw new Error(
     `Could not generate a "${difficulty}" puzzle within budget (${timeoutMs}ms / ${maxAttempts} attempts)`,
   );

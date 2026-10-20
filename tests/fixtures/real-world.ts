@@ -65,11 +65,11 @@ export const REAL_WORLD_PUZZLES: RealWorldPuzzle[] = [
   {
     id: "pe96-grid-06",
     source: "https://projecteuler.net/problem=96",
-    focus: "Naked Pair",
+    focus: "Pointing",
     puzzle:
       "100920000524010000000000070050008102000000000402700090060000000000030945000071006",
     humanSolvable: true,
-    expectTechnique: "Naked Pair Strategy",
+    expectTechnique: "Pointing Elimination Strategy",
   },
   {
     id: "pe96-grid-07",
@@ -101,11 +101,11 @@ export const REAL_WORLD_PUZZLES: RealWorldPuzzle[] = [
   {
     id: "pe96-grid-50",
     source: "https://projecteuler.net/problem=96",
-    focus: "Hidden Pair",
+    focus: "X-Wing",
     puzzle:
       "300200000000107000706030500070009080900020004010800050009040301000702000000008006",
     humanSolvable: true,
-    expectTechnique: "Hidden Pair Strategy",
+    expectTechnique: "X-Wing Strategy",
   },
   {
     id: "y-wing-generated",

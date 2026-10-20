@@ -6,6 +6,8 @@ import {
   Difficulty,
   Board,
   isUniqueSolution,
+  SOLVE_ERROR,
+  STEP_TYPE,
 } from "../src/index";
 import { DIFFICULTIES } from "../src/board/constants";
 import {
@@ -86,20 +88,74 @@ describe("api", () => {
     });
   });
 
+  describe("errorCode", () => {
+    const fromString = (p: string): Board =>
+      [...p].map((c) => (c === "0" ? null : Number(c)));
+    // Arto Inkala's "Everest": stuck before the first placement.
+    const everest = fromString(
+      "800000000003600000070090200050007000000045700000100030001000068008500010090000400",
+    );
+    // "Platinum Blonde": a few placements, then stuck.
+    const platinumBlonde = fromString(
+      "000000012000000003002300400001800005060070800000009000008500000900040500470006000",
+    );
+    const duplicate: Board = Array(81).fill(null);
+    duplicate[0] = 5;
+    duplicate[1] = 5;
+    // Row 1 holds 1–8 and column 9 already has a 9, so r1c9 has no candidate.
+    const unsolvable: Board = Array(81).fill(null);
+    for (let i = 0; i < 8; i++) unsolvable[i] = i + 1;
+    unsolvable[17] = 9;
+
+    it.each([
+      ["wrong length", [1] as Board],
+      ["duplicate digit in a house", duplicate],
+    ])("INVALID_BOARD for %s", (_label, board) => {
+      expect(solve(board).errorCode).toBe(SOLVE_ERROR.INVALID_BOARD);
+      expect(hint(board).errorCode).toBe(SOLVE_ERROR.INVALID_BOARD);
+    });
+
+    it("NO_SOLUTION for consistent givens with no solution", () => {
+      expect(solve(unsolvable).errorCode).toBe(SOLVE_ERROR.NO_SOLUTION);
+      expect(hint(unsolvable).errorCode).toBe(SOLVE_ERROR.NO_SOLUTION);
+    });
+
+    it("NEEDS_GUESSING when human logic gets stuck", () => {
+      const result = solve(everest);
+      expect(result.solved).toBe(false);
+      expect(result.errorCode).toBe(SOLVE_ERROR.NEEDS_GUESSING);
+      expect(result.analysis?.hasUniqueSolution).toBe(true);
+      expect(hint(everest).errorCode).toBe(SOLVE_ERROR.NEEDS_GUESSING);
+    });
+
+    it("hint still places a digit when the solver only gets stuck later", () => {
+      expect(solve(platinumBlonde).errorCode).toBe(SOLVE_ERROR.NEEDS_GUESSING);
+      const result = hint(platinumBlonde);
+      expect(result.solved).toBe(true);
+      expect(result.errorCode).toBeUndefined();
+      expect(result.steps?.[result.steps.length - 1]?.type).toBe(STEP_TYPE.VALUE);
+    });
+
+    it("has no errorCode on a unique, solvable board", () => {
+      expect(solve([...L4_BOARD]).errorCode).toBeUndefined();
+    });
+  });
+
   describe("generate", () => {
-    it.each(["L1", "L4", "L7"] as Difficulty[])(
-      "generates a unique %s puzzle at or below the band",
-      (difficulty) => {
-        const board = generate(difficulty);
+    // Seeded so CI is deterministic. Seed 1 / L4 and seed 5 / L6 used to throw.
+    it.each(
+      DIFFICULTIES.flatMap((difficulty) =>
+        [1, 5].map((seed) => [difficulty, seed] as [Difficulty, number]),
+      ),
+    )(
+      "generates a unique puzzle rated exactly %s (seed %i)",
+      (difficulty, seed) => {
+        const board = generate(difficulty, { seed });
         expect(board).toHaveLength(81);
         expect(isUniqueSolution(board)).toBe(true);
         const data = analyze(board);
         expect(data.hasSolution).toBe(true);
-        expect(DIFFICULTIES).toContain(data.difficulty);
-        // Never harder than requested (exact match when dig budget allows).
-        const idx = DIFFICULTIES.indexOf(data.difficulty!);
-        const want = DIFFICULTIES.indexOf(difficulty);
-        expect(idx).toBeLessThanOrEqual(want);
+        expect(data.difficulty).toBe(difficulty);
       },
       25_000,
     );
