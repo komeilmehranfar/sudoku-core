@@ -1,0 +1,80 @@
+name: Bug report
+description: Report incorrect behavior in sudoku-core
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Most issues depend on the exact puzzle, so please include the board.
+        Do not open an issue for a security vulnerability. See SECURITY.md.
+
+  - type: input
+    id: version
+    attributes:
+      label: sudoku-core version
+      description: Output of `npm ls sudoku-core`
+      placeholder: "4.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node.js version, bundler, browser and module format (ESM/CJS), as relevant.
+      placeholder: |
+        Node: 20.x
+        Bundler: Vite 6
+        Browser: Chrome 130
+        Module format: ESM
+    validations:
+      required: true
+
+  - type: textarea
+    id: board
+    attributes:
+      label: Board
+      description: The puzzle as an 81-item array (null for empty cells) or an 81-character string (0 for empty cells).
+      placeholder: "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Code to reproduce
+      description: A minimal snippet that shows the problem.
+      placeholder: |
+        import { analyze } from "sudoku-core";
+
+        const board = [/* 81 items */];
+        console.log(analyze(board));
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen (for example, the expected difficulty, step or solution).
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead. Include output, error messages or stack traces.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that helps, such as the puzzle source or the technique involved.
+    validations:
+      required: false
