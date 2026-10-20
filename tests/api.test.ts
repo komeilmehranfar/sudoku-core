@@ -157,7 +157,8 @@ describe("api", () => {
         expect(data.hasSolution).toBe(true);
         expect(data.difficulty).toBe(difficulty);
       },
-      25_000,
+      // seed 5 / L6 is the slowest case (~9 s under ts-jest locally, slower on CI)
+      120_000,
     );
   });
 });

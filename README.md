@@ -77,11 +77,11 @@ generate("L8", { seed: 20261020 }); // deterministic, e.g. a daily puzzle
 generate("L6", { timeoutMs: 5_000 }); // cap the search time
 ```
 
-| Option        | Default | Meaning                                          |
-| ------------- | ------- | ------------------------------------------------ |
-| `seed`        | random  | Same seed and level always give the same puzzle. |
-| `timeoutMs`   | `16000` | Wall-clock budget for the search.                |
-| `maxAttempts` | `500`   | Fresh grids to dig before giving up.             |
+| Option        | Default | Meaning                                                                                                                |
+| ------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `seed`        | random  | Same seed and level always give the same puzzle.                                                                       |
+| `timeoutMs`   | `16000` | Wall-clock budget. With a `seed` there is no limit by default, so the same seed gives the same puzzle on every device. |
+| `maxAttempts` | `500`   | Fresh grids to dig before giving up.                                                                                   |
 
 The puzzle is always rated exactly the requested level. `generate` throws only if it cannot find one within the budget, which is rare with the defaults.
 

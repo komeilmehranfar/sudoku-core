@@ -151,7 +151,8 @@ export function analyze(board: Board): AnalyzeData {
  *
  * @param difficulty - `"L1"` (easiest) … `"L10"` (hardest).
  * @param options - `seed` makes the result deterministic (e.g. a daily puzzle);
- *   `timeoutMs` (default 16000) and `maxAttempts` (default 500) bound the search.
+ *   `maxAttempts` (default 500) bounds the search, and `timeoutMs` adds a
+ *   wall-clock limit (default 16000 ms, or none when a seed is given).
  *
  * @example
  * ```ts

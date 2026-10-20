@@ -88,7 +88,10 @@ const CLUE_TARGET: Record<Difficulty, number> = {
 
 /** Options for `generate`. */
 export interface GenerateOptions {
-  /** Wall-clock budget in ms (default 16000). */
+  /**
+   * Wall-clock budget in ms. Default 16000 without a seed; no limit with a
+   * seed, so a seed gives the same puzzle on every device (see `maxAttempts`).
+   */
   timeoutMs?: number;
   /** Fresh grids to dig before giving up (default 500; each takes ~30 ms). */
   maxAttempts?: number;
@@ -116,7 +119,10 @@ function humanRating(grid: GridState, board: Board): Difficulty | null {
  * band is reached.
  */
 export function generatePuzzle(options: GeneratePuzzleOptions): Board {
-  const { difficulty, timeoutMs = 16_000, maxAttempts = 500, seed } = options;
+  const { difficulty, maxAttempts = 500, seed } = options;
+  // A wall-clock cutoff would make seeded output depend on device speed.
+  const timeoutMs =
+    options.timeoutMs ?? (seed === undefined ? 16_000 : Infinity);
   const random = seed === undefined ? Math.random : mulberry32(seed >>> 0);
   const started = Date.now();
   const outOfTime = () => Date.now() - started > timeoutMs;
