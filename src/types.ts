@@ -1,50 +1,40 @@
-import {
-  DIFFICULTY_EASY,
-  DIFFICULTY_HARD,
-  DIFFICULTY_MEDIUM,
-  DIFFICULTY_EXPERT,
-  SOLVE_MODE_STEP,
-  SOLVE_MODE_ALL,
-  DIFFICULTY_MASTER,
-} from "./constants";
-export type Difficulty =
-  | typeof DIFFICULTY_EASY
-  | typeof DIFFICULTY_MEDIUM
-  | typeof DIFFICULTY_HARD
-  | typeof DIFFICULTY_EXPERT
-  | typeof DIFFICULTY_MASTER;
-export type Board = Array<number | null>;
-export type CellValue = number | null;
-export type Cell = {
-  value: CellValue;
-  candidates: Array<CellValue>;
-  invalidCandidates?: Array<CellValue>;
-};
-export type InternalBoard = Array<Cell>;
+import { DIFFICULTIES } from "./board/constants";
 
-export type StrategyFn = () =>
-  | boolean
-  | Array<{ index: number; eliminatedCandidate?: number; filledValue: number }>
-  | -1;
-export interface Strategy {
-  title: string;
-  score: number;
-  fn: StrategyFn;
-  postFn?: () => void;
-  prevFn?: () => void;
-  type: "value" | "elimination";
-}
+export type Difficulty = (typeof DIFFICULTIES)[number];
+
+export type Board = Array<number | null>;
 
 export interface Update {
   index: number;
   eliminatedCandidate?: number;
-  filledValue: number;
+  filledValue?: number;
+  /** Pencil-mark teaching: add this candidate into the cell's notes */
+  addedCandidate?: number;
 }
+
 export interface SolvingStep {
   strategy: string;
-  updates: Array<Update>;
-  type: "value" | "elimination";
+  updates: Update[];
+  type: "value" | "elimination" | "add";
+  /** Technique nodes (e.g. kite ends / conjugates) for teaching highlights */
+  patternCells?: number[];
+  /** Digits that define the pattern (e.g. naked/hidden pair {2,6}) */
+  patternDigits?: number[];
+  /** Houses to shade (row/col/box cells involved in the pattern) */
+  regionCells?: number[];
 }
+
+export interface AnalyzeData {
+  hasSolution: boolean;
+  hasUniqueSolution?: boolean;
+  usedStrategies?: Array<{ title: string; freq: number } | null>;
+  difficulty?: Difficulty;
+  score?: number;
+  hardestTechnique?: string;
+  hardestRank?: number;
+  tedium?: number;
+}
+
 export interface SolvingResult {
   solved: boolean;
   board?: Board;
@@ -52,29 +42,3 @@ export interface SolvingResult {
   analysis?: AnalyzeData;
   error?: string;
 }
-
-export interface Options {
-  onError?: (args: { message: string }) => void;
-  onFinish?: (args: { difficulty: Difficulty; score: number }) => void;
-  onUpdate?: ({ strategy, updates, type }: SolvingStep) => void;
-  initBoard?: Board;
-  difficulty?: Difficulty;
-}
-
-// we call row, column, and box a house
-export type House = Array<number>;
-// rows, columns, and boxes
-export type Houses = Array<House>;
-
-export type AnalyzeData = {
-  hasSolution: boolean;
-  hasUniqueSolution?: boolean;
-  usedStrategies?: ({
-    title: string;
-    freq: number;
-  } | null)[];
-  difficulty?: Difficulty;
-  score?: number;
-};
-
-export type SolveType = typeof SOLVE_MODE_STEP | typeof SOLVE_MODE_ALL;

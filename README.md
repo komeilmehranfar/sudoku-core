@@ -1,31 +1,32 @@
-A typescript Sudoku package for generating, solving (step-by-step or all), and analyzing Sudoku boards with ease. Perfect for building Sudoku games and integrating Sudoku functionality into your applications.
-<br/>
+A TypeScript Sudoku package for generating, solving (step-by-step or all), and analyzing Sudoku boards with ease. Perfect for building Sudoku games and integrating Sudoku functionality into your applications.
 
-<p align="center">
+<div align="center">
+
   <a href="https://github.com/komeilmehranfar/sudoku-core">
-    <img src="/assets/sudoku-core.png" alt="Logo" width="320" height="180">
+    <img src="assets/sudoku-core.png" alt="sudoku-core logo" width="320" height="180">
   </a>
 
-  <h3 align="center">Sudoku Solver and Generator Javascript</h3>
+  <h3>Sudoku Solver and Generator</h3>
 
-  <p align="center"> 
+  <p>
     <a href="https://github.com/komeilmehranfar/sudoku-core"><strong>Explore the docs »</strong></a>
-    <br/>
-    <br/>
+    ·
     <a href="https://codesandbox.io/s/cold-fast-vvrf2d?file=/src/index.ts">View Demo</a>
-    .
+    ·
     <a href="https://github.com/komeilmehranfar/sudoku-core/issues">Report Bug</a>
-    .
+    ·
     <a href="https://github.com/komeilmehranfar/sudoku-core/issues">Request Feature</a>
   </p>
-</p>
 
-![Downloads](https://img.shields.io/npm/dt/sudoku-core)
-![Contributors](https://img.shields.io/github/contributors/komeilmehranfar/sudoku-core?color=dark-green)
-![Forks](https://img.shields.io/github/forks/komeilmehranfar/sudoku-core?style=social)
-![Stargazers](https://img.shields.io/github/stars/komeilmehranfar/sudoku-core?style=social)
-![Issues](https://img.shields.io/github/issues/komeilmehranfar/sudoku-core)
-![License](https://img.shields.io/github/license/komeilmehranfar/sudoku-core)
+  <p>
+    <a href="https://www.npmjs.com/package/sudoku-core"><img src="https://img.shields.io/npm/v/sudoku-core.svg?style=flat-square" alt="npm version"></a>
+    <a href="https://www.npmjs.com/package/sudoku-core"><img src="https://img.shields.io/npm/dm/sudoku-core.svg?style=flat-square" alt="npm downloads"></a>
+    <a href="https://github.com/komeilmehranfar/sudoku-core/stargazers"><img src="https://img.shields.io/github/stars/komeilmehranfar/sudoku-core.svg?style=flat-square" alt="stars"></a>
+    <a href="https://github.com/komeilmehranfar/sudoku-core/issues"><img src="https://img.shields.io/github/issues/komeilmehranfar/sudoku-core.svg?style=flat-square" alt="issues"></a>
+    <a href="https://github.com/komeilmehranfar/sudoku-core/blob/main/LICENSE"><img src="https://img.shields.io/github/license/komeilmehranfar/sudoku-core.svg?style=flat-square" alt="license"></a>
+  </p>
+
+</div>
 
 ## Table Of Contents
 
@@ -42,17 +43,12 @@ A typescript Sudoku package for generating, solving (step-by-step or all), and a
 
 ## About the package
 
-**gzipped size**: 3.2k
-
 **Key Features**:
 
-**Board Generation**: Quickly create Sudoku boards for various difficulty levels.
-
-**Solver**: Solve Sudoku puzzles.
-
-**Step-by-Step Solution**: Walk through the solution process step by step, making it ideal for educational purposes or enhancing user engagement in Sudoku apps.
-
-**Board Analysis**: Analyze the difficulty and strategies to solve a sudoku board.
+- **Board Generation**: Create unique puzzles across difficulty bands `L1` … `L10` (optional seed for deterministic dailies).
+- **Human-logic Solver**: Solve with classical techniques — not brute force.
+- **Step-by-Step Hints**: Walk through the next technique, ideal for teaching and UX.
+- **Board Analysis**: Rate difficulty, techniques used, and uniqueness.
 
 ## Getting Started
 
@@ -66,7 +62,7 @@ npm install sudoku-core@latest
 
 | function              | Input                                                | Output                  |
 | --------------------- | ---------------------------------------------------- | ----------------------- |
-| [generate](#generate) | "easy" \| "medium" \| "hard" \| "expert" \| "master" | Board                   |
+| [generate](#generate) | "L1" … "L10"                                         | Board                   |
 | [solve](#solve)       | Board                                                | [SolvingResult](#solve) |
 | [hint](#solveStep)    | Board                                                | [SolvingResult](#hint)  |
 | [analyze](#analyze)   | Board                                                | [AnalyzeData](#analyze) |
@@ -84,9 +80,12 @@ board:
 - Generates a new Sudoku puzzle.
 
 ```typescript
-// difficulty: easy - medium - hard - expert - master;
-const board = generate("easy");
-console.log(board);
+// difficulty: L1 (easiest) … L10 (hardest)
+const board = generate("L4");
+
+// optional: deterministic puzzle (e.g. daily challenge)
+const daily = generate("L3", { seed: 20261020 });
+console.log(board, daily);
 ```
 
 ```json
@@ -145,8 +144,9 @@ console.log(solvedBoard);
       { "title": "Single Remaining Cell Strategy", "frequency": 21 },
       ...strategies
     ],
-    "difficulty": "master",
-    "score": 2232
+    "difficulty": "L8",
+    "score": 2232,
+    "hardestRank": 4.2
   }
 }
 ```
@@ -191,7 +191,7 @@ console.log(solvedBoard);
       { "title": "Single Remaining Cell Strategy", "frequency": 21 },
       ...strategies
     ],
-    "difficulty": "master",
+    "difficulty": "L8",
     "score": 2232
   }
 }
@@ -211,13 +211,16 @@ console.log(analyzeData);
   "hasSolution": true,
   "hasUniqueSolution": true,
   "usedStrategies": [
-    { "title": "Single Remaining Cell Strategy", "frequency": 21 },
-    { "title": "Single Candidate Cell Strategy", "frequency": 11 },
-    { "title": "Single Candidate Value Strategy", "frequency": 29 },
-    { "title": "Pointing Elimination Strategy", "frequency": 27 }
+    { "title": "Open Singles Strategy", "freq": 21 },
+    { "title": "Single Candidate Strategy", "freq": 11 },
+    { "title": "Visual Elimination Strategy", "freq": 29 },
+    { "title": "Pointing Elimination Strategy", "freq": 27 }
   ],
-  "level": "expert",
-  "score": 1683.1
+  "difficulty": "L4",
+  "score": 1683.1,
+  "hardestTechnique": "Pointing Elimination Strategy",
+  "hardestRank": 2.6,
+  "tedium": 1.4
 }
 ```
 

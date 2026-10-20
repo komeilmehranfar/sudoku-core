@@ -1,85 +1,161 @@
-import { createSudokuInstance } from "./sudoku";
-import { isUniqueSolution } from "./sudoku-solver";
-import {
-  type AnalyzeData,
-  type Board,
-  type Difficulty,
-  type SolvingStep,
-  type SolvingResult,
+import { boardFromPublic, boardToPublic, isComplete } from "./board/board";
+import { generatePuzzle } from "./generate/generate";
+import { rateSteps } from "./rate/difficulty";
+import { hintStep, walkthrough } from "./tactics/apply";
+import { hasAnySolution, isUniqueSolution } from "./uniqueness/count-solutions";
+import type {
+  AnalyzeData,
+  Board,
+  Difficulty,
+  SolvingResult,
+  SolvingStep,
+  Update,
 } from "./types";
 
-export { type AnalyzeData, type Board, type Difficulty, type SolvingStep };
+export type {
+  AnalyzeData,
+  Board,
+  Difficulty,
+  SolvingStep,
+  SolvingResult,
+  Update,
+};
+export { DIFFICULTIES } from "./board/constants";
 
-export function analyze(Board: Board): AnalyzeData {
-  const { analyzeBoard } = createSudokuInstance({
-    initBoard: Board.slice(),
-  });
-  return { ...analyzeBoard(), hasUniqueSolution: isUniqueSolution(Board) };
-}
+export { isUniqueSolution } from "./uniqueness/count-solutions";
 
-export function generate(difficulty: Difficulty): Board {
-  const { getBoard } = createSudokuInstance({ difficulty });
-  if (!analyze(getBoard()).hasUniqueSolution) {
-    return generate(difficulty);
-  }
-  return getBoard();
-}
+function analyzeBoard(board: Board): AnalyzeData {
+  try {
+    const state = boardFromPublic(board);
+    const unique = isUniqueSolution(board);
+    const path = walkthrough(state);
 
-export function solve(Board: Board): SolvingResult {
-  const solvingSteps: SolvingStep[] = [];
+    if (!path.solved) {
+      return {
+        hasSolution: hasAnySolution(board),
+        hasUniqueSolution: unique,
+      };
+    }
 
-  const { solveAll } = createSudokuInstance({
-    initBoard: Board.slice(),
-    onUpdate: (solvingStep) => solvingSteps.push(solvingStep),
-  });
-
-  const analysis = analyze(Board);
-
-  if (!analysis.hasSolution) {
-    return { solved: false, error: "No solution for provided board!" };
-  }
-
-  const board = solveAll();
-
-  if (!analysis.hasUniqueSolution) {
+    const rating = rateSteps(path.steps);
     return {
-      solved: true,
-      board,
-      steps: solvingSteps,
-      analysis,
-      error: "No unique solution for provided board!",
+      hasSolution: true,
+      hasUniqueSolution: unique,
+      usedStrategies: rating.usedStrategies,
+      difficulty: rating.difficulty,
+      score: rating.score,
+      hardestTechnique: rating.hardestTechnique,
+      hardestRank: rating.hardestRank,
+      tedium: rating.tedium,
+    };
+  } catch {
+    return {
+      hasSolution: false,
+      hasUniqueSolution: false,
     };
   }
-
-  return { solved: true, board, steps: solvingSteps, analysis };
 }
 
-export function hint(Board: Board): SolvingResult {
-  const solvingSteps: SolvingStep[] = [];
-  const { solveStep } = createSudokuInstance({
-    initBoard: Board.slice(),
-    onUpdate: (solvingStep) => solvingSteps.push(solvingStep),
-  });
-  const analysis = analyze(Board);
+export function analyze(board: Board): AnalyzeData {
+  return analyzeBoard(board);
+}
 
-  if (!analysis.hasSolution) {
-    return { solved: false, error: "No solution for provided board!" };
-  }
-  const board = solveStep();
+export function generate(
+  difficulty: Difficulty,
+  options?: { seed?: number; timeoutMs?: number; maxAttempts?: number },
+): Board {
+  return generatePuzzle({ difficulty, ...options });
+}
 
-  if (!board) {
-    return { solved: false, error: "No solution for provided board!" };
-  }
+export function solve(board: Board): SolvingResult {
+  try {
+    const analysis = analyzeBoard(board);
+    if (!analysis.hasSolution) {
+      return { solved: false, error: "No solution for provided board!" };
+    }
 
-  if (!analysis.hasUniqueSolution) {
-    return {
+    const state = boardFromPublic(board);
+    const path = walkthrough(state);
+
+    if (!path.solved) {
+      return {
+        solved: false,
+        analysis,
+        error: "No human-logic solution for provided board!",
+      };
+    }
+
+    const result: SolvingResult = {
       solved: true,
-      board,
-      steps: solvingSteps,
+      board: boardToPublic(path.state),
+      steps: path.steps,
       analysis,
-      error: "No unique solution for provided board!",
     };
-  }
 
-  return { solved: true, board, steps: solvingSteps, analysis };
+    if (!analysis.hasUniqueSolution) {
+      result.error = "No unique solution for provided board!";
+    }
+
+    return result;
+  } catch {
+    return { solved: false, error: "No solution for provided board!" };
+  }
 }
+
+export { teachHint, applyTeachStep, candidatesFromBoard } from "./hint/teach";
+export type { TeachingHint, HouseKind } from "./hint/teach";
+
+export function hint(board: Board): SolvingResult {
+  try {
+    const analysis = analyzeBoard(board);
+    if (!analysis.hasSolution) {
+      return { solved: false, error: "No solution for provided board!" };
+    }
+
+    const state = boardFromPublic(board);
+    if (isComplete(state)) {
+      return {
+        solved: true,
+        board: boardToPublic(state),
+        steps: [],
+        analysis,
+      };
+    }
+
+    const result = hintStep(state);
+    if (!result) {
+      return {
+        solved: false,
+        analysis,
+        error: "No solution for provided board!",
+      };
+    }
+
+    const payload: SolvingResult = {
+      solved: true,
+      board: boardToPublic(result.board),
+      steps: result.steps,
+      analysis,
+    };
+
+    if (!analysis.hasUniqueSolution) {
+      payload.error = "No unique solution for provided board!";
+    }
+
+    return payload;
+  } catch {
+    return { solved: false, error: "No solution for provided board!" };
+  }
+}
+
+export { CELL_COUNT } from "./board/constants";
+export { getUniqueSolution, hasAnySolution } from "./uniqueness/count-solutions";
+export { TEACH_MODE } from "./hint/teach";
+export { TACTICS } from "./tactics/registry";
+export {
+  LEARN_TARGETS,
+  generateExamplesForTactic,
+  type LearnExample,
+  type LearnLessonTarget,
+} from "./learn/generate-examples";
+
