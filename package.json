@@ -96,7 +96,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@commitlint/cli": "^18.4.3",
+    "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@size-limit/preset-small-lib": "^14.1.0",
     "@types/jest": "^29.5.10",
