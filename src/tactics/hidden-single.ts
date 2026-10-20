@@ -1,16 +1,17 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /** Digit appears as candidate in only one cell of a house. */
 export const hiddenSingleTactic: Tactic = {
-  id: "hidden-single",
-  title: "Single Candidate Strategy",
+  id: TACTIC_ID.HIDDEN_SINGLE,
+  title: STRATEGY.HIDDEN_SINGLE,
   score: 8,
   rank: 1.5,
-  type: "value",
+  type: STEP_TYPE.VALUE,
   find(state: GridState) {
     for (const group of HOUSES) {
       for (const house of group) {
@@ -23,7 +24,7 @@ export const hiddenSingleTactic: Tactic = {
           }
           if (cells.length === 1) {
             return step(
-              { title: "Single Candidate Strategy", type: "value" },
+              { title: STRATEGY.HIDDEN_SINGLE, type: STEP_TYPE.VALUE },
               [{ index: cells[0], filledValue: digit }],
               {
                 patternCells: [cells[0]],

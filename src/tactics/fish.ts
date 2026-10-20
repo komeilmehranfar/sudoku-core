@@ -1,9 +1,10 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
 import type { SolvingStep } from "../types";
+import { STRATEGY, TACTIC_ID, type Strategy } from "./names";
 
 /**
  * Basic fish of size N (2=X-Wing, 3=Swordfish, 4=Jellyfish):
@@ -13,7 +14,7 @@ import type { SolvingStep } from "../types";
 export function findBasicFish(
   state: GridState,
   size: 2 | 3 | 4,
-  title: string,
+  title: Strategy,
 ): SolvingStep | null {
   const rowHit = findFishOrientation(state, size, 0, 1, title);
   if (rowHit) return rowHit;
@@ -25,7 +26,7 @@ function findFishOrientation(
   size: 2 | 3 | 4,
   primaryType: 0 | 1,
   secondaryType: 0 | 1,
-  title: string,
+  title: Strategy,
 ): SolvingStep | null {
   for (let digit = 1; digit <= BOARD_SIZE; digit++) {
     const lines: { line: number; seconds: number[] }[] = [];
@@ -82,11 +83,10 @@ function findFishOrientation(
             ...[...secondarySet].flatMap((s) => [...HOUSES[secondaryType][s]]),
           ]),
         ];
-        return step(
-          { title, type: "elimination" },
-          updates,
-          { patternCells, regionCells },
-        );
+        return step({ title, type: STEP_TYPE.ELIMINATION }, updates, {
+          patternCells,
+          regionCells,
+        });
       }
     }
   }
@@ -112,34 +112,34 @@ function combinations(n: number, k: number): number[][] {
 }
 
 export const xWingTactic: Tactic = {
-  id: "x-wing",
-  title: "X-Wing Strategy",
+  id: TACTIC_ID.X_WING,
+  title: STRATEGY.X_WING,
   score: 120,
   rank: 3.2,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findBasicFish(state, 2, "X-Wing Strategy");
+    return findBasicFish(state, 2, STRATEGY.X_WING);
   },
 };
 
 export const swordfishTactic: Tactic = {
-  id: "swordfish",
-  title: "Swordfish Strategy",
+  id: TACTIC_ID.SWORDFISH,
+  title: STRATEGY.SWORDFISH,
   score: 200,
   rank: 3.8,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findBasicFish(state, 3, "Swordfish Strategy");
+    return findBasicFish(state, 3, STRATEGY.SWORDFISH);
   },
 };
 
 export const jellyfishTactic: Tactic = {
-  id: "jellyfish",
-  title: "Jellyfish Strategy",
+  id: TACTIC_ID.JELLYFISH,
+  title: STRATEGY.JELLYFISH,
   score: 280,
   rank: 5.2,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findBasicFish(state, 4, "Jellyfish Strategy");
+    return findBasicFish(state, 4, STRATEGY.JELLYFISH);
   },
 };

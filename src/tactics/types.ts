@@ -1,17 +1,20 @@
 import type { GridState } from "../board/board";
+import type { STEP_TYPE, StepType } from "../board/constants";
 import { CELL_HOUSES, HOUSES } from "../board/houses";
 import type { SolvingStep, Update } from "../types";
+import type { Strategy, TacticId } from "./names";
 
 export type TacticFn = (state: GridState) => SolvingStep | null;
 
 export interface Tactic {
-  id: string;
-  title: string;
+  id: TacticId;
+  title: Strategy;
   /** Relative human difficulty / usefulness cost */
   score: number;
   /** SE-like rank for hardest-technique rating (lower = easier) */
   rank: number;
-  type: "value" | "elimination";
+  /** Tactics place digits or remove candidates; only teaching hints add notes. */
+  type: Exclude<StepType, typeof STEP_TYPE.ADD>;
   find: TacticFn;
 }
 

@@ -7,14 +7,16 @@ import {
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
+import { STEP_TYPE } from "../board/constants";
 
 /** Four cells in a house whose candidates are within a 4-digit set. */
 export const nakedQuadTactic: Tactic = {
-  id: "naked-quad",
-  title: "Naked Quadruple Strategy",
+  id: TACTIC_ID.NAKED_QUAD,
+  title: STRATEGY.NAKED_QUAD,
   score: 120,
   rank: 3.8,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (const group of HOUSES) {
       for (const house of group) {
@@ -54,8 +56,8 @@ export const nakedQuadTactic: Tactic = {
                 if (updates.length > 0) {
                   return step(
                     {
-                      title: "Naked Quadruple Strategy",
-                      type: "elimination",
+                      title: STRATEGY.NAKED_QUAD,
+                      type: STEP_TYPE.ELIMINATION,
                     },
                     updates,
                     {

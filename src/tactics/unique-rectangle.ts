@@ -1,8 +1,9 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, hasDigit } from "../board/candidates";
 import { CELL_HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * Unique Rectangle Type 1:
@@ -11,11 +12,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * the fourth has extras → eliminate A and B from the fourth.
  */
 export const uniqueRectangleTactic: Tactic = {
-  id: "unique-rectangle",
-  title: "Unique Rectangle Strategy",
+  id: TACTIC_ID.UNIQUE_RECTANGLE,
+  title: STRATEGY.UNIQUE_RECTANGLE,
   score: 200,
   rank: 4.8,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const empties: number[] = [];
     for (let i = 0; i < CELL_COUNT; i++) {
@@ -66,7 +67,10 @@ export const uniqueRectangleTactic: Tactic = {
             }
             if (updates.length > 0) {
               return step(
-                { title: "Unique Rectangle Strategy", type: "elimination" },
+                {
+                  title: STRATEGY.UNIQUE_RECTANGLE,
+                  type: STEP_TYPE.ELIMINATION,
+                },
                 updates,
                 {
                   patternCells: corners,

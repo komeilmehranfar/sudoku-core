@@ -1,12 +1,25 @@
-import { boardFromPublic, boardToPublic, isComplete } from "./board/board";
+import {
+  boardFromPublic,
+  boardToPublic,
+  cloneGrid,
+  isComplete,
+  type GridState,
+} from "./board/board";
+import { SOLVE_ERROR, STEP_TYPE } from "./board/constants";
 import { generatePuzzle } from "./generate/generate";
+import type { GenerateOptions } from "./generate/generate";
 import { rateSteps } from "./rate/difficulty";
-import { hintStep, walkthrough } from "./tactics/apply";
+import {
+  applyStep,
+  walkthrough,
+  type WalkthroughResult,
+} from "./tactics/apply";
 import { hasAnySolution, isUniqueSolution } from "./uniqueness/count-solutions";
 import type {
   AnalyzeData,
   Board,
   Difficulty,
+  SolveErrorCode,
   SolvingResult,
   SolvingStep,
   Update,
@@ -16,146 +29,242 @@ export type {
   AnalyzeData,
   Board,
   Difficulty,
+  SolveErrorCode,
   SolvingStep,
   SolvingResult,
   Update,
 };
-export { DIFFICULTIES } from "./board/constants";
+
+export type { GenerateOptions };
+export type { StepType } from "./board/constants";
+export type { TeachingHint, HouseKind, TeachMode } from "./hint/teach";
+
+export { DIFFICULTIES, SOLVE_ERROR, STEP_TYPE } from "./board/constants";
+export { STRATEGY, TACTIC_ID } from "./tactics/names";
+export type { Strategy, TacticId } from "./tactics/names";
 
 export { isUniqueSolution } from "./uniqueness/count-solutions";
 
-function analyzeBoard(board: Board): AnalyzeData {
+const SOLVE_ERROR_MESSAGE: Record<SolveErrorCode, string> = {
+  [SOLVE_ERROR.INVALID_BOARD]: "No solution for provided board!",
+  [SOLVE_ERROR.NO_SOLUTION]: "No solution for provided board!",
+  [SOLVE_ERROR.NEEDS_GUESSING]: "No human-logic solution for provided board!",
+  [SOLVE_ERROR.MULTIPLE_SOLUTIONS]: "No unique solution for provided board!",
+};
+
+/** Max solver steps a single hint may take while looking for a placement. */
+const HINT_MAX_STEPS = 40;
+
+function failure(
+  errorCode: SolveErrorCode,
+  analysis?: AnalyzeData,
+  error = SOLVE_ERROR_MESSAGE[errorCode],
+): SolvingResult {
+  return analysis
+    ? { solved: false, analysis, error, errorCode }
+    : { solved: false, error, errorCode };
+}
+
+interface Evaluation {
+  analysis: AnalyzeData;
+  /** Absent when the input is not a valid grid. */
+  state?: GridState;
+  /** Absent when the input is invalid or the solver threw. */
+  path?: WalkthroughResult;
+}
+
+/** Parse, check uniqueness, and run the human-logic solver once. */
+function evaluate(board: Board): Evaluation {
+  let state: GridState;
   try {
-    const state = boardFromPublic(board);
+    state = boardFromPublic(board);
+  } catch {
+    return { analysis: { hasSolution: false, hasUniqueSolution: false } };
+  }
+
+  try {
     const unique = isUniqueSolution(board);
     const path = walkthrough(state);
 
     if (!path.solved) {
       return {
-        hasSolution: hasAnySolution(board),
-        hasUniqueSolution: unique,
+        analysis: {
+          hasSolution: hasAnySolution(board),
+          hasUniqueSolution: unique,
+        },
+        state,
+        path,
       };
     }
 
     const rating = rateSteps(path.steps);
     return {
-      hasSolution: true,
-      hasUniqueSolution: unique,
-      usedStrategies: rating.usedStrategies,
-      difficulty: rating.difficulty,
-      score: rating.score,
-      hardestTechnique: rating.hardestTechnique,
-      hardestRank: rating.hardestRank,
-      tedium: rating.tedium,
+      analysis: {
+        hasSolution: true,
+        hasUniqueSolution: unique,
+        usedStrategies: rating.usedStrategies,
+        difficulty: rating.difficulty,
+        score: rating.score,
+        hardestTechnique: rating.hardestTechnique,
+        hardestRank: rating.hardestRank,
+        tedium: rating.tedium,
+      },
+      state,
+      path,
     };
   } catch {
     return {
-      hasSolution: false,
-      hasUniqueSolution: false,
+      analysis: { hasSolution: false, hasUniqueSolution: false },
+      state,
     };
   }
 }
 
-export function analyze(board: Board): AnalyzeData {
-  return analyzeBoard(board);
+/**
+ * Steps up to and including the first placement (at most {@link HINT_MAX_STEPS}),
+ * or null when the solver gets stuck before placing anything.
+ */
+function hintPrefix(steps: SolvingStep[]): SolvingStep[] | null {
+  const prefix: SolvingStep[] = [];
+  for (const step of steps.slice(0, HINT_MAX_STEPS)) {
+    prefix.push(step);
+    if (step.type === STEP_TYPE.VALUE) return prefix;
+  }
+  return prefix.length === HINT_MAX_STEPS ? prefix : null;
 }
 
+/**
+ * Rate a board's difficulty and check whether it has a (unique) solution.
+ *
+ * @example
+ * ```ts
+ * const { difficulty, hardestTechnique } = analyze(board);
+ * ```
+ */
+export function analyze(board: Board): AnalyzeData {
+  return evaluate(board).analysis;
+}
+
+/**
+ * Generate a puzzle with exactly one solution that can be solved with
+ * human-logic techniques and rates at the requested difficulty.
+ *
+ * @param difficulty - `"L1"` (easiest) … `"L10"` (hardest).
+ * @param options - `seed` makes the result deterministic (e.g. a daily puzzle);
+ *   `timeoutMs` (default 16000) and `maxAttempts` (default 500) bound the search.
+ *
+ * @example
+ * ```ts
+ * const board = generate("L4");
+ * const daily = generate("L3", { seed: 20261020 });
+ * ```
+ */
 export function generate(
   difficulty: Difficulty,
-  options?: { seed?: number; timeoutMs?: number; maxAttempts?: number },
+  options?: GenerateOptions,
 ): Board {
   return generatePuzzle({ difficulty, ...options });
 }
 
+/**
+ * Solve the whole board with human-logic techniques (no guessing) and return
+ * every step taken, plus the difficulty analysis.
+ *
+ * Check `errorCode` when `solved` is false, or when a solved board has more
+ * than one solution (`MULTIPLE_SOLUTIONS`).
+ *
+ * @example
+ * ```ts
+ * const result = solve(board);
+ * if (result.solved) console.log(result.board, result.steps.length);
+ * else console.log(result.errorCode);
+ * ```
+ */
 export function solve(board: Board): SolvingResult {
-  try {
-    const analysis = analyzeBoard(board);
-    if (!analysis.hasSolution) {
-      return { solved: false, error: "No solution for provided board!" };
-    }
+  const { analysis, state, path } = evaluate(board);
+  if (!state) return failure(SOLVE_ERROR.INVALID_BOARD);
+  if (!analysis.hasSolution || !path) return failure(SOLVE_ERROR.NO_SOLUTION);
+  if (!path.solved) return failure(SOLVE_ERROR.NEEDS_GUESSING, analysis);
 
-    const state = boardFromPublic(board);
-    const path = walkthrough(state);
+  const result: SolvingResult = {
+    solved: true,
+    board: boardToPublic(path.state),
+    steps: path.steps,
+    analysis,
+  };
 
-    if (!path.solved) {
-      return {
-        solved: false,
-        analysis,
-        error: "No human-logic solution for provided board!",
-      };
-    }
-
-    const result: SolvingResult = {
-      solved: true,
-      board: boardToPublic(path.state),
-      steps: path.steps,
-      analysis,
-    };
-
-    if (!analysis.hasUniqueSolution) {
-      result.error = "No unique solution for provided board!";
-    }
-
-    return result;
-  } catch {
-    return { solved: false, error: "No solution for provided board!" };
+  if (!analysis.hasUniqueSolution) {
+    result.error = SOLVE_ERROR_MESSAGE[SOLVE_ERROR.MULTIPLE_SOLUTIONS];
+    result.errorCode = SOLVE_ERROR.MULTIPLE_SOLUTIONS;
   }
+
+  return result;
 }
 
 export { teachHint, applyTeachStep, candidatesFromBoard } from "./hint/teach";
-export type { TeachingHint, HouseKind } from "./hint/teach";
 
+/**
+ * Advance the board to its next placement. `steps` holds the eliminations
+ * that led to it, followed by the placement itself.
+ *
+ * For a richer, UI-ready explanation (highlight cells, pencil-mark
+ * reconciliation) use {@link teachHint}.
+ *
+ * @example
+ * ```ts
+ * const { board: next, steps } = hint(board);
+ * console.log(steps[steps.length - 1].strategy); // "Single Candidate Strategy"
+ * ```
+ */
 export function hint(board: Board): SolvingResult {
-  try {
-    const analysis = analyzeBoard(board);
-    if (!analysis.hasSolution) {
-      return { solved: false, error: "No solution for provided board!" };
-    }
+  const { analysis, state, path } = evaluate(board);
+  if (!state) return failure(SOLVE_ERROR.INVALID_BOARD);
+  if (!analysis.hasSolution || !path) return failure(SOLVE_ERROR.NO_SOLUTION);
 
-    const state = boardFromPublic(board);
-    if (isComplete(state)) {
-      return {
-        solved: true,
-        board: boardToPublic(state),
-        steps: [],
-        analysis,
-      };
-    }
-
-    const result = hintStep(state);
-    if (!result) {
-      return {
-        solved: false,
-        analysis,
-        error: "No solution for provided board!",
-      };
-    }
-
-    const payload: SolvingResult = {
-      solved: true,
-      board: boardToPublic(result.board),
-      steps: result.steps,
-      analysis,
-    };
-
-    if (!analysis.hasUniqueSolution) {
-      payload.error = "No unique solution for provided board!";
-    }
-
-    return payload;
-  } catch {
-    return { solved: false, error: "No solution for provided board!" };
+  if (isComplete(state)) {
+    return { solved: true, board: boardToPublic(state), steps: [], analysis };
   }
+
+  const steps = hintPrefix(path.steps);
+  if (!steps) {
+    return failure(
+      SOLVE_ERROR.NEEDS_GUESSING,
+      analysis,
+      SOLVE_ERROR_MESSAGE[SOLVE_ERROR.NO_SOLUTION],
+    );
+  }
+
+  const next = cloneGrid(state);
+  for (const step of steps) applyStep(next, step);
+
+  const payload: SolvingResult = {
+    solved: true,
+    board: boardToPublic(next),
+    steps,
+    analysis,
+  };
+
+  if (!analysis.hasUniqueSolution) {
+    payload.error = SOLVE_ERROR_MESSAGE[SOLVE_ERROR.MULTIPLE_SOLUTIONS];
+    payload.errorCode = SOLVE_ERROR.MULTIPLE_SOLUTIONS;
+  }
+
+  return payload;
 }
 
 export { CELL_COUNT } from "./board/constants";
-export { getUniqueSolution, hasAnySolution } from "./uniqueness/count-solutions";
-export { TEACH_MODE } from "./hint/teach";
+export {
+  getUniqueSolution,
+  hasAnySolution,
+} from "./uniqueness/count-solutions";
+export { HOUSE_KIND, TEACH_MODE, TEACH_STRATEGY } from "./hint/teach";
 export { TACTICS } from "./tactics/registry";
+export type { Tactic, TacticFn } from "./tactics/types";
+export type { GridState } from "./board/board";
 export {
   LEARN_TARGETS,
   generateExamplesForTactic,
+  type GenerateLessonExamplesOptions,
   type LearnExample,
   type LearnLessonTarget,
 } from "./learn/generate-examples";
-

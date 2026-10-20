@@ -2,13 +2,15 @@ import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
+import { STEP_TYPE } from "../board/constants";
 
 export const nakedPairTactic: Tactic = {
-  id: "naked-pair",
-  title: "Naked Pair Strategy",
+  id: TACTIC_ID.NAKED_PAIR,
+  title: STRATEGY.NAKED_PAIR,
   score: 50,
   rank: 3.0,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (const group of HOUSES) {
       for (const house of group) {
@@ -41,7 +43,7 @@ export const nakedPairTactic: Tactic = {
 
             if (updates.length > 0) {
               return step(
-                { title: "Naked Pair Strategy", type: "elimination" },
+                { title: STRATEGY.NAKED_PAIR, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells: [pairCells[a].index, pairCells[b].index],

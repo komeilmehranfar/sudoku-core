@@ -1,4 +1,4 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import { cloneGrid, placeValue, type GridState } from "../board/board";
@@ -6,6 +6,7 @@ import { openSinglesTactic } from "./open-singles";
 import { nakedSingleTactic } from "./naked-single";
 import { hiddenSingleTactic } from "./hidden-single";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * Nishio Forcing Chain/Net: assume a candidate is true; if singles
@@ -16,11 +17,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * the solution).
  */
 export const nishioTactic: Tactic = {
-  id: "nishio",
-  title: "Nishio Forcing Chain Strategy",
+  id: TACTIC_ID.NISHIO,
+  title: STRATEGY.NISHIO,
   score: 400,
   rank: 7.9,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (let i = 0; i < CELL_COUNT; i++) {
       if (state.values[i] !== 0) continue;
@@ -31,7 +32,7 @@ export const nishioTactic: Tactic = {
       for (const digit of digits) {
         if (assumptionContradicts(state, i, digit)) {
           return step(
-            { title: "Nishio Forcing Chain Strategy", type: "elimination" },
+            { title: STRATEGY.NISHIO, type: STEP_TYPE.ELIMINATION },
             [{ index: i, eliminatedCandidate: digit }],
             {
               patternCells: [i],

@@ -1,8 +1,9 @@
-import { BOARD_SIZE, BOX_SIZE } from "../board/constants";
+import { BOARD_SIZE, BOX_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * Empty Rectangle + strong link:
@@ -11,11 +12,11 @@ import { step, type Tactic } from "./types";
  * an elimination at the opposite corner.
  */
 export const emptyRectangleTactic: Tactic = {
-  id: "empty-rectangle",
-  title: "Empty Rectangle Strategy",
+  id: TACTIC_ID.EMPTY_RECTANGLE,
+  title: STRATEGY.EMPTY_RECTANGLE,
   score: 220,
   rank: 4.6,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (let digit = 1; digit <= BOARD_SIZE; digit++) {
       for (let box = 0; box < BOARD_SIZE; box++) {
@@ -47,12 +48,9 @@ export const emptyRectangleTactic: Tactic = {
             tCol >= boxCol0 &&
             tCol < boxCol0 + BOX_SIZE;
           if (inErBox) continue;
-          const patternCells = [
-            ...candidatesInBox(state, box, digit),
-            ...hits,
-          ];
+          const patternCells = [...candidatesInBox(state, box, digit), ...hits];
           return step(
-            { title: "Empty Rectangle Strategy", type: "elimination" },
+            { title: STRATEGY.EMPTY_RECTANGLE, type: STEP_TYPE.ELIMINATION },
             [{ index: target, eliminatedCandidate: digit }],
             {
               patternCells: [...new Set(patternCells)],
@@ -89,12 +87,9 @@ export const emptyRectangleTactic: Tactic = {
             tCol >= boxCol0 &&
             tCol < boxCol0 + BOX_SIZE;
           if (inErBox) continue;
-          const patternCells = [
-            ...candidatesInBox(state, box, digit),
-            ...hits,
-          ];
+          const patternCells = [...candidatesInBox(state, box, digit), ...hits];
           return step(
-            { title: "Empty Rectangle Strategy", type: "elimination" },
+            { title: STRATEGY.EMPTY_RECTANGLE, type: STEP_TYPE.ELIMINATION },
             [{ index: target, eliminatedCandidate: digit }],
             {
               patternCells: [...new Set(patternCells)],

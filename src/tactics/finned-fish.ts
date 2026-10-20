@@ -1,9 +1,10 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { CELL_HOUSES, HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
 import type { SolvingStep } from "../types";
+import { STRATEGY, TACTIC_ID, type Strategy } from "./names";
 
 /**
  * Finned basic fish: almost a size-N fish, but one primary has extra
@@ -13,7 +14,7 @@ import type { SolvingStep } from "../types";
 function findFinnedFish(
   state: GridState,
   size: 2 | 3 | 4,
-  title: string,
+  title: Strategy,
 ): SolvingStep | null {
   const a = findFinnedOrientation(state, size, 0, 1, title);
   if (a) return a;
@@ -25,7 +26,7 @@ function findFinnedOrientation(
   size: 2 | 3 | 4,
   primaryType: 0 | 1,
   secondaryType: 0 | 1,
-  title: string,
+  title: Strategy,
 ): SolvingStep | null {
   for (let digit = 1; digit <= BOARD_SIZE; digit++) {
     const lines: { line: number; seconds: number[] }[] = [];
@@ -98,11 +99,10 @@ function findFinnedOrientation(
               ...HOUSES[2][finBox],
             ]),
           ];
-          return step(
-            { title, type: "elimination" },
-            updates,
-            { patternCells, regionCells },
-          );
+          return step({ title, type: STEP_TYPE.ELIMINATION }, updates, {
+            patternCells,
+            regionCells,
+          });
         }
       }
     }
@@ -129,34 +129,34 @@ function combinations(n: number, k: number): number[][] {
 }
 
 export const finnedXWingTactic: Tactic = {
-  id: "finned-x-wing",
-  title: "Finned X-Wing Strategy",
+  id: TACTIC_ID.FINNED_X_WING,
+  title: STRATEGY.FINNED_X_WING,
   score: 190,
   rank: 4.7,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findFinnedFish(state, 2, "Finned X-Wing Strategy");
+    return findFinnedFish(state, 2, STRATEGY.FINNED_X_WING);
   },
 };
 
 export const finnedSwordfishTactic: Tactic = {
-  id: "finned-swordfish",
-  title: "Finned Swordfish Strategy",
+  id: TACTIC_ID.FINNED_SWORDFISH,
+  title: STRATEGY.FINNED_SWORDFISH,
   score: 220,
   rank: 5.0,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findFinnedFish(state, 3, "Finned Swordfish Strategy");
+    return findFinnedFish(state, 3, STRATEGY.FINNED_SWORDFISH);
   },
 };
 
 export const finnedJellyfishTactic: Tactic = {
-  id: "finned-jellyfish",
-  title: "Finned Jellyfish Strategy",
+  id: TACTIC_ID.FINNED_JELLYFISH,
+  title: STRATEGY.FINNED_JELLYFISH,
   score: 260,
   rank: 5.4,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state) {
-    return findFinnedFish(state, 4, "Finned Jellyfish Strategy");
+    return findFinnedFish(state, 4, STRATEGY.FINNED_JELLYFISH);
   },
 };

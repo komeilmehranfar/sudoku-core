@@ -7,14 +7,16 @@ import {
 import { HOUSES } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
+import { STEP_TYPE } from "../board/constants";
 
 /** Three cells in a house whose candidates are within a 3-digit set. */
 export const nakedTripleTactic: Tactic = {
-  id: "naked-triple",
-  title: "Naked Triplet Strategy",
+  id: TACTIC_ID.NAKED_TRIPLE,
+  title: STRATEGY.NAKED_TRIPLE,
   score: 100,
   rank: 3.6,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     for (const group of HOUSES) {
       for (const house of group) {
@@ -53,7 +55,7 @@ export const nakedTripleTactic: Tactic = {
 
               if (updates.length > 0) {
                 return step(
-                  { title: "Naked Triplet Strategy", type: "elimination" },
+                  { title: STRATEGY.NAKED_TRIPLE, type: STEP_TYPE.ELIMINATION },
                   updates,
                   {
                     patternCells: [cells[a], cells[b], cells[c]],

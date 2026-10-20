@@ -1,8 +1,9 @@
-import { BOARD_SIZE } from "../board/constants";
+import { BOARD_SIZE, STEP_TYPE } from "../board/constants";
 import { hasDigit } from "../board/candidates";
 import { CELL_HOUSES, HOUSES, peersOf, sameHouse } from "../board/houses";
 import type { GridState } from "../board/board";
 import { step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 function elimTails(
   state: GridState,
@@ -52,7 +53,7 @@ function findSkyscraper(state: GridState) {
         const updates = elimTails(state, digit, t1, t2);
         if (updates.length > 0) {
           return step(
-            { title: "Skyscraper Strategy", type: "elimination" },
+            { title: STRATEGY.SKYSCRAPER, type: STEP_TYPE.ELIMINATION },
             updates,
             {
               patternCells: [t1, t2, linkA, linkB],
@@ -96,7 +97,7 @@ function findSkyscraper(state: GridState) {
         const updates = elimTails(state, digit, t1, t2);
         if (updates.length > 0) {
           return step(
-            { title: "Skyscraper Strategy", type: "elimination" },
+            { title: STRATEGY.SKYSCRAPER, type: STEP_TYPE.ELIMINATION },
             updates,
             {
               patternCells: [t1, t2, linkA, linkB],
@@ -160,7 +161,10 @@ function findTwoStringKite(state: GridState) {
               const rowCells = [...HOUSES[0][rp.row]];
               const colCells = [...HOUSES[1][cp.col]];
               return step(
-                { title: "Two-String-Kite Strategy", type: "elimination" },
+                {
+                  title: STRATEGY.TWO_STRING_KITE,
+                  type: STEP_TYPE.ELIMINATION,
+                },
                 updates,
                 {
                   patternCells: [t1, t2, rowEnd, colEnd],
@@ -232,15 +236,15 @@ function findCrane(state: GridState) {
               const [lr, lc] = CELL_HOUSES[le];
               const [tr, tc] = CELL_HOUSES[t2];
               const lineHouse =
-                lr === tr ? [...HOUSES[0][lr]] : [...HOUSES[1][lc === tc ? lc : tc]];
+                lr === tr
+                  ? [...HOUSES[0][lr]]
+                  : [...HOUSES[1][lc === tc ? lc : tc]];
               return step(
-                { title: "Crane Strategy", type: "elimination" },
+                { title: STRATEGY.CRANE, type: STEP_TYPE.ELIMINATION },
                 updates,
                 {
                   patternCells: [t1, t2, be, le],
-                  regionCells: [
-                    ...new Set([...HOUSES[2][box], ...lineHouse]),
-                  ],
+                  regionCells: [...new Set([...HOUSES[2][box], ...lineHouse])],
                 },
               );
             }
@@ -253,28 +257,28 @@ function findCrane(state: GridState) {
 }
 
 export const skyscraperTactic: Tactic = {
-  id: "skyscraper",
-  title: "Skyscraper Strategy",
+  id: TACTIC_ID.SKYSCRAPER,
+  title: STRATEGY.SKYSCRAPER,
   score: 150,
   rank: 4.0,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find: findSkyscraper,
 };
 
 export const twoStringKiteTactic: Tactic = {
-  id: "two-string-kite",
-  title: "Two-String-Kite Strategy",
+  id: TACTIC_ID.TWO_STRING_KITE,
+  title: STRATEGY.TWO_STRING_KITE,
   score: 150,
   rank: 4.0,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find: findTwoStringKite,
 };
 
 export const craneTactic: Tactic = {
-  id: "crane",
-  title: "Crane Strategy",
+  id: TACTIC_ID.CRANE,
+  title: STRATEGY.CRANE,
   score: 160,
   rank: 4.1,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find: findCrane,
 };

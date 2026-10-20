@@ -1,8 +1,9 @@
-import { CELL_COUNT } from "../board/constants";
+import { CELL_COUNT, STEP_TYPE } from "../board/constants";
 import { candidateCount, digitsFromMask, hasDigit } from "../board/candidates";
 import { HOUSES, peersOf, sameHouse } from "../board/houses";
 import type { GridState } from "../board/board";
 import { regionFromCells, step, type Tactic } from "./types";
+import { STRATEGY, TACTIC_ID } from "./names";
 
 /**
  * W-Wing: two bivalue cells A,B with the same candidates {x,z}, linked by a
@@ -13,11 +14,11 @@ import { regionFromCells, step, type Tactic } from "./types";
  * 2. An external conjugate {p,q} for x where A sees p, B sees q (A,B outside)
  */
 export const wWingTactic: Tactic = {
-  id: "w-wing",
-  title: "W-Wing Strategy",
+  id: TACTIC_ID.W_WING,
+  title: STRATEGY.W_WING,
   score: 170,
   rank: 4.3,
-  type: "elimination",
+  type: STEP_TYPE.ELIMINATION,
   find(state: GridState) {
     const cells: { index: number; digits: [number, number] }[] = [];
     for (let i = 0; i < CELL_COUNT; i++) {
@@ -57,7 +58,7 @@ export const wWingTactic: Tactic = {
           if (updates.length > 0) {
             const patternCells = [A.index, B.index];
             return step(
-              { title: "W-Wing Strategy", type: "elimination" },
+              { title: STRATEGY.W_WING, type: STEP_TYPE.ELIMINATION },
               updates,
               {
                 patternCells,
