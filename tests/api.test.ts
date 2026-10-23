@@ -115,6 +115,25 @@ describe("api", () => {
       expect(hint(board).errorCode).toBe(SOLVE_ERROR.INVALID_BOARD);
     });
 
+    it("INVALID_BOARD says why, and points 0 at null", () => {
+      const zeroForEmpty = [...L4_BOARD].map((v) => v ?? 0) as Board;
+      const result = solve(zeroForEmpty);
+      expect(result.errorCode).toBe(SOLVE_ERROR.INVALID_BOARD);
+      expect(result.error).toMatch(/Invalid cell value at \d+: 0/);
+      expect(result.error).toContain("use null for empty cells");
+      expect(hint(zeroForEmpty).error).toBe(result.error);
+      expect(solve([1] as Board).error).toContain("81 cells");
+    });
+
+    it("MULTIPLE_SOLUTIONS, not NEEDS_GUESSING, when logic stalls on an ambiguous board", () => {
+      const empty: Board = Array(81).fill(null);
+      const result = solve(empty);
+      expect(result.solved).toBe(false);
+      expect(result.errorCode).toBe(SOLVE_ERROR.MULTIPLE_SOLUTIONS);
+      expect(result.analysis?.hasUniqueSolution).toBe(false);
+      expect(hint(empty).errorCode).toBe(SOLVE_ERROR.MULTIPLE_SOLUTIONS);
+    });
+
     it("NO_SOLUTION for consistent givens with no solution", () => {
       expect(solve(unsolvable).errorCode).toBe(SOLVE_ERROR.NO_SOLUTION);
       expect(hint(unsolvable).errorCode).toBe(SOLVE_ERROR.NO_SOLUTION);
@@ -133,7 +152,9 @@ describe("api", () => {
       const result = hint(platinumBlonde);
       expect(result.solved).toBe(true);
       expect(result.errorCode).toBeUndefined();
-      expect(result.steps?.[result.steps.length - 1]?.type).toBe(STEP_TYPE.VALUE);
+      expect(result.steps?.[result.steps.length - 1]?.type).toBe(
+        STEP_TYPE.VALUE,
+      );
     });
 
     it("has no errorCode on a unique, solvable board", () => {

@@ -189,12 +189,12 @@ These use a fast backtracking search and work on any board, including ones human
 
 `solve` and `hint` never throw. When something is wrong they return `solved: false` with a machine-readable `errorCode` (plus a human-readable `error`):
 
-| `errorCode`          | Meaning                                                                                |
-| -------------------- | -------------------------------------------------------------------------------------- |
-| `INVALID_BOARD`      | Not 81 cells, a value outside 1–9, or the same digit twice in a row, column or box.    |
-| `NO_SOLUTION`        | The givens are consistent, but no solution exists.                                     |
-| `NEEDS_GUESSING`     | A solution exists, but the techniques get stuck (for example "Everest"-class puzzles). |
-| `MULTIPLE_SOLUTIONS` | Solved (`solved: true`), but the puzzle has more than one solution.                    |
+| `errorCode`          | Meaning                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `INVALID_BOARD`      | Not 81 cells, a value outside 1–9, or the same digit twice in a row, column or box.       |
+| `NO_SOLUTION`        | The givens are consistent, but no solution exists.                                        |
+| `NEEDS_GUESSING`     | A solution exists, but the techniques get stuck (for example "Everest"-class puzzles).    |
+| `MULTIPLE_SOLUTIONS` | More than one solution, so logic usually can't finish it; `hint` may still place a digit. |
 
 ```ts
 import { solve, SOLVE_ERROR } from "sudoku-core";
