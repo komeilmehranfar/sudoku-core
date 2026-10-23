@@ -39,7 +39,12 @@ export function boardFromPublic(board: Board): GridState {
     const value = board[i];
     if (value == null) continue;
     if (!Number.isInteger(value) || value < 1 || value > 9) {
-      throw new Error(`Invalid cell value at ${i}: ${value}`);
+      const fix = value === 0 ? " (use null for empty cells)" : "";
+      throw new Error(
+        `Invalid cell value at ${i}: ${JSON.stringify(
+          value,
+        )}, expected 1–9 or null${fix}`,
+      );
     }
     if (!placeValue(state, i, value)) {
       throw new Error(`Conflicting value ${value} at index ${i}`);
