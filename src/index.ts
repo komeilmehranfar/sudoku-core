@@ -46,7 +46,7 @@ export type { Strategy, TacticId } from "./tactics/names";
 export { isUniqueSolution } from "./uniqueness/count-solutions";
 
 const SOLVE_ERROR_MESSAGE: Record<SolveErrorCode, string> = {
-  [SOLVE_ERROR.INVALID_BOARD]: "No solution for provided board!",
+  [SOLVE_ERROR.INVALID_BOARD]: "Invalid board!",
   [SOLVE_ERROR.NO_SOLUTION]: "No solution for provided board!",
   [SOLVE_ERROR.NEEDS_GUESSING]: "No human-logic solution for provided board!",
   [SOLVE_ERROR.MULTIPLE_SOLUTIONS]: "No unique solution for provided board!",
@@ -71,6 +71,8 @@ interface Evaluation {
   state?: GridState;
   /** Absent when the input is invalid or the solver threw. */
   path?: WalkthroughResult;
+  /** Why the input is not a valid grid; set exactly when `state` is absent. */
+  invalidReason?: string;
 }
 
 /** Parse, check uniqueness, and run the human-logic solver once. */
@@ -78,8 +80,11 @@ function evaluate(board: Board): Evaluation {
   let state: GridState;
   try {
     state = boardFromPublic(board);
-  } catch {
-    return { analysis: { hasSolution: false, hasUniqueSolution: false } };
+  } catch (err) {
+    return {
+      analysis: { hasSolution: false, hasUniqueSolution: false },
+      invalidReason: `Invalid board: ${(err as Error).message}`,
+    };
   }
 
   try {
@@ -118,6 +123,16 @@ function evaluate(board: Board): Evaluation {
       state,
     };
   }
+}
+
+/**
+ * Why the human-logic solver stalled: a puzzle with several solutions can
+ * never be finished by logic alone, so report that before blaming technique.
+ */
+function stuckErrorCode(analysis: AnalyzeData): SolveErrorCode {
+  return analysis.hasUniqueSolution
+    ? SOLVE_ERROR.NEEDS_GUESSING
+    : SOLVE_ERROR.MULTIPLE_SOLUTIONS;
 }
 
 /**
@@ -182,10 +197,12 @@ export function generate(
  * ```
  */
 export function solve(board: Board): SolvingResult {
-  const { analysis, state, path } = evaluate(board);
-  if (!state) return failure(SOLVE_ERROR.INVALID_BOARD);
+  const { analysis, state, path, invalidReason } = evaluate(board);
+  if (!state) {
+    return failure(SOLVE_ERROR.INVALID_BOARD, undefined, invalidReason);
+  }
   if (!analysis.hasSolution || !path) return failure(SOLVE_ERROR.NO_SOLUTION);
-  if (!path.solved) return failure(SOLVE_ERROR.NEEDS_GUESSING, analysis);
+  if (!path.solved) return failure(stuckErrorCode(analysis), analysis);
 
   const result: SolvingResult = {
     solved: true,
@@ -218,8 +235,10 @@ export { teachHint, applyTeachStep, candidatesFromBoard } from "./hint/teach";
  * ```
  */
 export function hint(board: Board): SolvingResult {
-  const { analysis, state, path } = evaluate(board);
-  if (!state) return failure(SOLVE_ERROR.INVALID_BOARD);
+  const { analysis, state, path, invalidReason } = evaluate(board);
+  if (!state) {
+    return failure(SOLVE_ERROR.INVALID_BOARD, undefined, invalidReason);
+  }
   if (!analysis.hasSolution || !path) return failure(SOLVE_ERROR.NO_SOLUTION);
 
   if (isComplete(state)) {
@@ -227,13 +246,7 @@ export function hint(board: Board): SolvingResult {
   }
 
   const steps = hintPrefix(path.steps);
-  if (!steps) {
-    return failure(
-      SOLVE_ERROR.NEEDS_GUESSING,
-      analysis,
-      SOLVE_ERROR_MESSAGE[SOLVE_ERROR.NO_SOLUTION],
-    );
-  }
+  if (!steps) return failure(stuckErrorCode(analysis), analysis);
 
   const next = cloneGrid(state);
   for (const step of steps) applyStep(next, step);

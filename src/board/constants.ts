@@ -51,6 +51,7 @@ export const SOLVE_ERROR = {
  * - `INVALID_BOARD` — not 81 cells, a value outside 1–9, or two equal digits in one house.
  * - `NO_SOLUTION` — the givens are consistent but no solution exists.
  * - `NEEDS_GUESSING` — a solution exists but the human-logic techniques get stuck.
- * - `MULTIPLE_SOLUTIONS` — solved, but the puzzle has more than one solution.
+ * - `MULTIPLE_SOLUTIONS` — the puzzle has more than one solution. `solved` is false
+ *   when logic stalls on the ambiguity, true when the techniques still finish a board.
  */
 export type SolveErrorCode = (typeof SOLVE_ERROR)[keyof typeof SOLVE_ERROR];
