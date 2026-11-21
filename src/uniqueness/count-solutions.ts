@@ -1,3 +1,4 @@
+import { boardFromPublic } from "../board/board";
 import { CELL_COUNT } from "../board/constants";
 import type { Board } from "../types";
 
@@ -24,9 +25,12 @@ function isValid(board: number[], index: number, num: number): boolean {
  * Uses a local counter — safe for concurrent / nested calls.
  */
 export function countSolutions(board: Board, limit = 2): number {
-  if (board.length !== CELL_COUNT) return 0;
-
-  const grid = board.map((v) => v ?? 0);
+  let grid: number[];
+  try {
+    grid = boardFromPublic(board).values;
+  } catch {
+    return 0;
+  }
   let count = 0;
 
   function solve(): boolean {
@@ -83,9 +87,12 @@ export function hasAnySolution(board: Board): boolean {
  * Return the unique filled grid (1-9), or null if not exactly one solution.
  */
 export function getUniqueSolution(board: Board): number[] | null {
-  if (board.length !== CELL_COUNT) return null;
-
-  const grid = board.map((v) => v ?? 0);
+  let grid: number[];
+  try {
+    grid = boardFromPublic(board).values;
+  } catch {
+    return null;
+  }
   let found: number[] | null = null;
   let count = 0;
 
